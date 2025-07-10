@@ -2,8 +2,10 @@
 @page "/products/edit/{Id:int}"
 @rendermode InteractiveServer
 @inject DataAccess.Services.IProductService ProductService
+@inject DataAccess.Services.ICategoryService CategoryService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@using BusinessObject.DTOs
 
 <PageTitle>Product</PageTitle>
 
@@ -14,8 +16,17 @@
         <InputText class="form-control" @bind-Value="model.ProductName" />
     </div>
     <div class="mb-3">
-        <label class="form-label">Category Id</label>
-        <InputNumber class="form-control" @bind-Value="model.CategoryId" />
+        <label class="form-label">Category</label>
+        <InputSelect class="form-control" @bind-Value="model.CategoryId">
+            <option value="">Select category</option>
+            @if (categories != null)
+            {
+                foreach (var c in categories)
+                {
+                    <option value="@c.CategoryId">@c.CategoryName</option>
+                }
+            }
+        </InputSelect>
     </div>
     <div class="mb-3">
         <label class="form-label">Weight</label>
@@ -35,7 +46,8 @@
 
 @code {
     [Parameter] public int? Id { get; set; }
-    private BusinessObject.DTOs.ProductDto model = new();
+    private ProductDto model = new();
+    private IEnumerable<CategoryDto>? categories;
     private bool redirectToLogin;
 
     protected override void OnInitialized()
@@ -45,6 +57,8 @@
             redirectToLogin = true;
             return;
         }
+
+        categories = CategoryService.GetCategories();
 
         if (Id.HasValue)
         {

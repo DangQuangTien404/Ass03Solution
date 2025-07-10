@@ -17,6 +17,8 @@ builder.Services.Configure<AdminAccount>(builder.Configuration.GetSection("Admin
 builder.Services.AddScoped<AdminAuthService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
 var app = builder.Build();
