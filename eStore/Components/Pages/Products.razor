@@ -1,0 +1,66 @@
+@page "/products"
+@inject DataAccess.Services.IProductService ProductService
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+
+<PageTitle>Products</PageTitle>
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-primary mb-2" @onclick="Create">Create Product</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in products)
+        {
+            <tr>
+                <td>@p.ProductId</td>
+                <td>@p.ProductName</td>
+                <td>@p.UnitPrice</td>
+                <td>@p.UnitsInStock</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => Edit(p.ProductId)">Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(p.ProductId)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<BusinessObject.DTOs.ProductDto>? products;
+
+    protected override void OnInitialized()
+    {
+        products = ProductService.GetProducts();
+    }
+
+    private void Create()
+    {
+        Navigation.NavigateTo("/products/create");
+    }
+
+    private void Edit(int id)
+    {
+        Navigation.NavigateTo($"/products/edit/{id}");
+    }
+
+    private void Delete(int id)
+    {
+        ProductService.DeleteProduct(id);
+        products = ProductService.GetProducts();
+        StateHasChanged();
+    }
+}
