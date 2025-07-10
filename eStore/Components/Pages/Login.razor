@@ -1,7 +1,8 @@
 @page "/login"
+@rendermode InteractiveServer
 @inject Microsoft.Extensions.Options.IOptions<eStore.AdminAccount> AdminOptions
 @inject eStore.AdminAuthService AuthService
-@inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 
 <PageTitle>Login</PageTitle>
 
@@ -36,7 +37,7 @@ else
 }
 
 @code {
-    private LoginModel loginModel = new();
+    private LoginModel loginModel = new(); // This must be initialized early
     private string? error;
     private string successMessage = string.Empty;
 
