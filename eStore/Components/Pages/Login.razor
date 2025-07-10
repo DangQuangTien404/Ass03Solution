@@ -1,7 +1,7 @@
 @page "/login"
 @inject Microsoft.Extensions.Options.IOptions<eStore.AdminAccount> AdminOptions
 @inject eStore.AdminAuthService AuthService
-@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject NavigationManager Navigation
 
 <PageTitle>Login</PageTitle>
 
@@ -12,20 +12,25 @@
 }
 else
 {
-    <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="adminLogin">
+    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
         <DataAnnotationsValidator />
+        <ValidationSummary />
+
         @if (!string.IsNullOrEmpty(error))
         {
-            <div class="text-danger">@error</div>
+            <div class="alert alert-danger">@error</div>
         }
+
         <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
+            <label for="email">Email</label>
             <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
         </div>
+
         <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
+            <label for="password">Password</label>
             <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
         </div>
+
         <button type="submit" class="btn btn-primary">Login</button>
     </EditForm>
 }
@@ -38,14 +43,17 @@ else
     private void HandleLogin()
     {
         var admin = AdminOptions.Value;
-        if (AuthService.Login(loginModel.Email, loginModel.Password, admin))
+        var email = loginModel.Email?.Trim();
+        var password = loginModel.Password?.Trim();
+
+        if (AuthService.Login(email, password, admin))
         {
-            successMessage = "Login successfully";
+            successMessage = "Login successful.";
             error = null;
         }
         else
         {
-            error = "Invalid credentials";
+            error = "Invalid credentials.";
             successMessage = string.Empty;
         }
     }
@@ -55,13 +63,13 @@ else
         AuthService.SignOut();
     }
 
-    private class LoginModel
+    public class LoginModel
     {
-        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required")]
         [System.ComponentModel.DataAnnotations.EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Password is required")]
         public string Password { get; set; } = string.Empty;
     }
 }
