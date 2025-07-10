@@ -1,0 +1,80 @@
+@page "/categories"
+@rendermode InteractiveServer
+@inject DataAccess.Services.ICategoryService CategoryService
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
+
+<PageTitle>Categories</PageTitle>
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-primary mb-2" @onclick="Create">Create Category</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in categories)
+        {
+            <tr>
+                <td>@c.CategoryId</td>
+                <td>@c.CategoryName</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => Edit(c.CategoryId)">Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(c.CategoryId)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<BusinessObject.DTOs.CategoryDto>? categories;
+    private bool redirectToLogin;
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsLoggedIn)
+        {
+            redirectToLogin = true;
+            return;
+        }
+
+        categories = CategoryService.GetCategories();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void Create()
+    {
+        Navigation.NavigateTo("/categories/create");
+    }
+
+    private void Edit(int id)
+    {
+        Navigation.NavigateTo($"/categories/edit/{id}");
+    }
+
+    private void Delete(int id)
+    {
+        CategoryService.DeleteCategory(id);
+        categories = CategoryService.GetCategories();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,70 @@
+@page "/categories/create"
+@page "/categories/edit/{Id:int}"
+@rendermode InteractiveServer
+@inject DataAccess.Services.ICategoryService CategoryService
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
+@using BusinessObject.DTOs
+
+<PageTitle>Category</PageTitle>
+
+<EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="model.CategoryName" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary ms-2" @onclick="Back">Back</button>
+</EditForm>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private CategoryDto model = new();
+    private bool redirectToLogin;
+
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsLoggedIn)
+        {
+            redirectToLogin = true;
+            return;
+        }
+
+        if (Id.HasValue)
+        {
+            var category = CategoryService.GetCategory(Id.Value);
+            if (category != null)
+            {
+                model = category;
+            }
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        if (Id.HasValue)
+        {
+            CategoryService.UpdateCategory(model);
+        }
+        else
+        {
+            CategoryService.CreateCategory(model);
+        }
+        Navigation.NavigateTo("/categories");
+    }
+
+    private void Back()
+    {
+        Navigation.NavigateTo("/categories");
+    }
+}
