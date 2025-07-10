@@ -6,8 +6,10 @@ namespace eStore
 
         public bool Login(string email, string password, AdminAccount account)
         {
-            if (string.Equals(email.Trim(), account.Email, System.StringComparison.OrdinalIgnoreCase)
-                && password == account.Password)
+            var trimmedEmail = email.Trim();
+            var trimmedPassword = password.Trim();
+            if (string.Equals(trimmedEmail, account.Email, System.StringComparison.OrdinalIgnoreCase)
+                && trimmedPassword == account.Password)
             {
                 IsLoggedIn = true;
                 return true;
