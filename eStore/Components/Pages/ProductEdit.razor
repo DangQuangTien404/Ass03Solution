@@ -2,6 +2,7 @@
 @page "/products/edit/{Id:int}"
 @inject DataAccess.Services.IProductService ProductService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
 
 <PageTitle>Product</PageTitle>
 
@@ -37,6 +38,12 @@
 
     protected override void OnInitialized()
     {
+        if (!AuthService.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
         if (Id.HasValue)
         {
             var product = ProductService.GetProduct(Id.Value);

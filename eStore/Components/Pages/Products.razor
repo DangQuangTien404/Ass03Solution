@@ -1,6 +1,7 @@
 @page "/products"
 @inject DataAccess.Services.IProductService ProductService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
 
 <PageTitle>Products</PageTitle>
 
@@ -44,6 +45,12 @@ else
 
     protected override void OnInitialized()
     {
+        if (!AuthService.IsLoggedIn)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
         products = ProductService.GetProducts();
     }
 
