@@ -1,0 +1,61 @@
+@page "/login"
+@inject Microsoft.Extensions.Options.IOptions<eStore.AdminAccount> AdminOptions
+@inject eStore.AdminAuthService AuthService
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+@if (AuthService.IsLoggedIn)
+{
+    <p>You are logged in.</p>
+    <button class="btn btn-secondary" @onclick="Logout">Logout</button>
+}
+else
+{
+    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="text-danger">@error</div>
+        }
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </EditForm>
+}
+
+@code {
+    private LoginModel loginModel = new();
+    private string? error;
+
+    private void HandleLogin()
+    {
+        var admin = AdminOptions.Value;
+        if (loginModel.Email == admin.Email && loginModel.Password == admin.Password)
+        {
+            AuthService.SignIn();
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            error = "Invalid credentials";
+        }
+    }
+
+    private void Logout()
+    {
+        AuthService.SignOut();
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}
