@@ -5027,11 +5027,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\eStore\\eStore.csproj",
+      "projectUniqueName": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\eStore\\eStore.csproj",
       "projectName": "eStore",
-      "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\eStore\\eStore.csproj",
+      "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\eStore\\eStore.csproj",
       "packagesPath": "C:\\Users\\Hiii\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\eStore\\obj\\",
+      "outputPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\eStore\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5052,11 +5052,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj": {
-              "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj"
+            "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj": {
+              "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj"
             },
-            "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\DataAccess.csproj": {
-              "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\DataAccess.csproj"
+            "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\DataAccess.csproj": {
+              "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\DataAccess.csproj"
             }
           }
         }

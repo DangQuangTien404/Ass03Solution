@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\DataAccess.csproj": {}
+    "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\DataAccess.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj": {
+    "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj",
+        "projectUniqueName": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj",
         "projectName": "BusinessObject",
-        "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj",
+        "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj",
         "packagesPath": "C:\\Users\\Hiii\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\obj\\",
+        "outputPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -69,14 +69,14 @@
         }
       }
     },
-    "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\DataAccess.csproj": {
+    "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\DataAccess.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\DataAccess.csproj",
+        "projectUniqueName": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\DataAccess.csproj",
         "projectName": "DataAccess",
-        "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\DataAccess.csproj",
+        "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\DataAccess.csproj",
         "packagesPath": "C:\\Users\\Hiii\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\DataAccess\\obj\\",
+        "outputPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\DataAccess\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -97,8 +97,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj": {
-                "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\code\\Asm03Solution\\BusinessObject\\BusinessObject.csproj"
+              "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj": {
+                "projectPath": "C:\\Users\\Hiii\\Desktop\\CODE\\PRN222\\Bot\\Ass03Solution\\BusinessObject\\BusinessObject.csproj"
               }
             }
           }
