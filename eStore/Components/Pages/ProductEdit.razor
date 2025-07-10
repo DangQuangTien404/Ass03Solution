@@ -1,5 +1,6 @@
 @page "/products/create"
 @page "/products/edit/{Id:int}"
+@rendermode InteractiveServer
 @inject DataAccess.Services.IProductService ProductService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
@@ -35,12 +36,13 @@
 @code {
     [Parameter] public int? Id { get; set; }
     private BusinessObject.DTOs.ProductDto model = new();
+    private bool redirectToLogin;
 
     protected override void OnInitialized()
     {
         if (!AuthService.IsLoggedIn)
         {
-            Navigation.NavigateTo("/login");
+            redirectToLogin = true;
             return;
         }
 
@@ -51,6 +53,15 @@
             {
                 model = product;
             }
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
         }
     }
 
