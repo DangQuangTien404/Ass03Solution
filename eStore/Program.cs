@@ -1,7 +1,9 @@
 using DataAccess;
-using eStore; 
+using eStore;
 using eStore.Components;
 using Microsoft.EntityFrameworkCore;
+using DataAccess.Repositories;
+using DataAccess.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.Configure<AdminAccount>(builder.Configuration.GetSection("AdminAccount"));
 builder.Services.AddScoped<AdminAuthService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 
 var app = builder.Build();
