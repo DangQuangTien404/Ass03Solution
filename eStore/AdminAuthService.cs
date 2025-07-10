@@ -3,6 +3,9 @@ namespace eStore
     public class AdminAuthService
     {
         public bool IsLoggedIn { get; private set; }
+        public event Action? OnChange;
+
+        private void NotifyStateChanged() => OnChange?.Invoke();
 
         public bool Login(string email, string password, AdminAccount account)
         {
@@ -12,6 +15,7 @@ namespace eStore
                 && trimmedPassword == account.Password)
             {
                 IsLoggedIn = true;
+                NotifyStateChanged();
                 return true;
             }
 
@@ -21,6 +25,7 @@ namespace eStore
         public void SignOut()
         {
             IsLoggedIn = false;
+            NotifyStateChanged();
         }
     }
 }
