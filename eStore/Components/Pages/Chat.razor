@@ -1,0 +1,58 @@
+@page "/chat"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+
+<PageTitle>Chat</PageTitle>
+
+<h1>Chat</h1>
+
+<div class="mb-2">
+    <input @bind="userInput" placeholder="Name" class="form-control mb-1" />
+    <input @bind="messageInput" placeholder="Message" class="form-control mb-1" />
+    <button class="btn btn-primary" @onclick="SendMessage" disabled="@(hubConnection?.State != HubConnectionState.Connected)">Send</button>
+</div>
+
+<ul>
+    @foreach (var message in messages)
+    {
+        <li><b>@message.User:</b> @message.Text</li>
+    }
+</ul>
+
+@code {
+    private HubConnection? hubConnection;
+    private string? userInput;
+    private string? messageInput;
+    private List<ChatMessage> messages = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chatHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            messages.Add(new ChatMessage { User = user, Text = message });
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task SendMessage()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+        }
+    }
+
+    private class ChatMessage
+    {
+        public string? User { get; set; }
+        public string? Text { get; set; }
+    }
+}

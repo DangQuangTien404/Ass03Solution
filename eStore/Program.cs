@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddSignalR();
 
 // Register AppDbContext with DI
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -27,6 +28,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.MapBlazorHub();
+app.MapHub<eStore.Hubs.ChatHub>("/chatHub");
 app.MapFallbackToPage("/_Host");
 
 app.Run();
