@@ -38,10 +38,8 @@ else
     private void HandleLogin()
     {
         var admin = AdminOptions.Value;
-        if (string.Equals(loginModel.Email?.Trim(), admin.Email, System.StringComparison.OrdinalIgnoreCase)
-            && loginModel.Password == admin.Password)
+        if (AuthService.Login(loginModel.Email, loginModel.Password, admin))
         {
-            AuthService.SignIn();
             successMessage = "Login successfully";
             error = null;
         }
@@ -59,7 +57,11 @@ else
 
     private class LoginModel
     {
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required]
         public string Password { get; set; } = string.Empty;
     }
 }

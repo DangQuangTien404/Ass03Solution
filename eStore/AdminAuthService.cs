@@ -4,9 +4,16 @@ namespace eStore
     {
         public bool IsLoggedIn { get; private set; }
 
-        public void SignIn()
+        public bool Login(string email, string password, AdminAccount account)
         {
-            IsLoggedIn = true;
+            if (string.Equals(email.Trim(), account.Email, System.StringComparison.OrdinalIgnoreCase)
+                && password == account.Password)
+            {
+                IsLoggedIn = true;
+                return true;
+            }
+
+            return false;
         }
 
         public void SignOut()
