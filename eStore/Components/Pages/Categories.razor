@@ -5,6 +5,7 @@
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
 @using Microsoft.AspNetCore.SignalR.Client
+@using BusinessObject.DTOs
 @implements IAsyncDisposable
 
 <PageTitle>Categories</PageTitle>
@@ -15,7 +16,8 @@
 }
 else
 {
-    <button class="btn btn-primary mb-2" @onclick="Create">Create Category</button>
+    <input class="form-control mb-2" placeholder="Search by name" @bind="searchTerm" @bind:event="oninput" />
+    <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Category</button>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -26,14 +28,14 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var c in categories)
+        @foreach (var c in FilteredCategories)
         {
             <tr>
                 <td>@c.CategoryId</td>
                 <td>@c.CategoryName</td>
                 <td>@c.Description</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => Edit(c.CategoryId)">Edit</button>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(c.CategoryId)">Edit</button>
                     <button class="btn btn-sm btn-danger" @onclick="() => Delete(c.CategoryId)">Delete</button>
                 </td>
             </tr>
@@ -42,10 +44,51 @@ else
     </table>
 }
 
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@((editing ? "Edit Category" : "Create Category"))</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <EditForm Model="modalModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <InputText class="form-control" @bind-Value="modalModel.CategoryName" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputText class="form-control" @bind-Value="modalModel.Description" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private IEnumerable<BusinessObject.DTOs.CategoryDto>? categories;
+    private IEnumerable<CategoryDto>? categories;
     private bool redirectToLogin;
     private HubConnection? hubConnection;
+    private string searchTerm = string.Empty;
+
+    private bool showModal;
+    private bool editing;
+    private CategoryDto modalModel = new();
+
+    private IEnumerable<CategoryDto> FilteredCategories => string.IsNullOrWhiteSpace(searchTerm)
+        ? categories ?? Enumerable.Empty<CategoryDto>()
+        : categories?.Where(c => c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            ?? Enumerable.Empty<CategoryDto>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,8 +105,8 @@ else
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<BusinessObject.DTOs.CategoryDto>("CategoryCreated", _ => InvokeAsync(LoadCategories));
-        hubConnection.On<BusinessObject.DTOs.CategoryDto>("CategoryUpdated", _ => InvokeAsync(LoadCategories));
+        hubConnection.On<CategoryDto>("CategoryCreated", _ => InvokeAsync(LoadCategories));
+        hubConnection.On<CategoryDto>("CategoryUpdated", _ => InvokeAsync(LoadCategories));
         hubConnection.On<int>("CategoryDeleted", _ => InvokeAsync(LoadCategories));
 
         await hubConnection.StartAsync();
@@ -78,16 +121,46 @@ else
         }
     }
 
-    private void Create()
+    private void ShowCreate()
     {
-        Navigation.NavigateTo("/categories/create");
+        editing = false;
+        modalModel = new CategoryDto();
+        showModal = true;
     }
 
-    private void Edit(int id)
+    private void ShowEdit(int id)
     {
-        Navigation.NavigateTo($"/categories/edit/{id}");
+        var category = CategoryService.GetCategory(id);
+        if (category == null) return;
+        editing = true;
+        modalModel = category;
+        showModal = true;
     }
 
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+        {
+            return;
+        }
+
+        if (editing)
+        {
+            CategoryService.UpdateCategory(modalModel);
+        }
+        else
+        {
+            CategoryService.CreateCategory(modalModel);
+        }
+
+        showModal = false;
+        await LoadCategories();
+    }
 
     private async Task Delete(int id)
     {

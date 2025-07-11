@@ -1,10 +1,12 @@
 @page "/products"
 @rendermode InteractiveServer
 @inject DataAccess.Services.IProductService ProductService
+@inject DataAccess.Services.ICategoryService CategoryService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
 @using Microsoft.AspNetCore.SignalR.Client
+@using BusinessObject.DTOs
 @implements IAsyncDisposable
 
 <PageTitle>Products</PageTitle>
@@ -15,27 +17,30 @@
 }
 else
 {
-    <button class="btn btn-primary mb-2" @onclick="Create">Create Product</button>
+    <input class="form-control mb-2" placeholder="Search by name" @bind="searchTerm" @bind:event="oninput" />
+    <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Product</button>
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>Id</th>
                 <th>Name</th>
+                <th>Weight</th>
                 <th>Price</th>
                 <th>Stock</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var p in products)
+        @foreach (var p in FilteredProducts)
         {
             <tr>
                 <td>@p.ProductId</td>
                 <td>@p.ProductName</td>
+                <td>@p.Weight</td>
                 <td>@p.UnitPrice</td>
                 <td>@p.UnitsInStock</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => Edit(p.ProductId)">Edit</button>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(p.ProductId)">Edit</button>
                     <button class="btn btn-sm btn-danger" @onclick="() => Delete(p.ProductId)">Delete</button>
                 </td>
             </tr>
@@ -44,10 +49,73 @@ else
     </table>
 }
 
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@((editing ? "Edit Product" : "Create Product"))</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <EditForm Model="modalModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <InputText class="form-control" @bind-Value="modalModel.ProductName" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <InputSelect class="form-control" @bind-Value="modalModel.CategoryId">
+                                <option value="">Select category</option>
+                                @if (categories != null)
+                                {
+                                    foreach (var c in categories)
+                                    {
+                                        <option value="@c.CategoryId">@c.CategoryName</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Weight</label>
+                            <InputText class="form-control" @bind-Value="modalModel.Weight" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Unit Price</label>
+                            <InputNumber class="form-control" @bind-Value="modalModel.UnitPrice" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Units In Stock</label>
+                            <InputNumber class="form-control" @bind-Value="modalModel.UnitsInStock" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private IEnumerable<BusinessObject.DTOs.ProductDto>? products;
+    private IEnumerable<ProductDto>? products;
+    private IEnumerable<CategoryDto>? categories;
     private bool redirectToLogin;
     private HubConnection? hubConnection;
+    private string searchTerm = string.Empty;
+
+    private bool showModal;
+    private bool editing;
+    private ProductDto modalModel = new();
+
+    private IEnumerable<ProductDto> FilteredProducts => string.IsNullOrWhiteSpace(searchTerm)
+        ? products ?? Enumerable.Empty<ProductDto>()
+        : products?.Where(p => p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            ?? Enumerable.Empty<ProductDto>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,16 +125,16 @@ else
             return;
         }
 
-        await LoadProducts();
+        await LoadData();
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/productHub"))
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<BusinessObject.DTOs.ProductDto>("ProductCreated", _ => InvokeAsync(LoadProducts));
-        hubConnection.On<BusinessObject.DTOs.ProductDto>("ProductUpdated", _ => InvokeAsync(LoadProducts));
-        hubConnection.On<int>("ProductDeleted", _ => InvokeAsync(LoadProducts));
+        hubConnection.On<ProductDto>("ProductCreated", _ => InvokeAsync(LoadData));
+        hubConnection.On<ProductDto>("ProductUpdated", _ => InvokeAsync(LoadData));
+        hubConnection.On<int>("ProductDeleted", _ => InvokeAsync(LoadData));
 
         await hubConnection.StartAsync();
     }
@@ -80,14 +148,53 @@ else
         }
     }
 
-    private void Create()
+    private Task LoadData()
     {
-        Navigation.NavigateTo("/products/create");
+        products = ProductService.GetProducts();
+        categories = CategoryService.GetCategories();
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
-    private void Edit(int id)
+    private void ShowCreate()
     {
-        Navigation.NavigateTo($"/products/edit/{id}");
+        editing = false;
+        modalModel = new ProductDto();
+        showModal = true;
+    }
+
+    private void ShowEdit(int id)
+    {
+        var product = ProductService.GetProduct(id);
+        if (product == null) return;
+        editing = true;
+        modalModel = product;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+        {
+            return;
+        }
+
+        if (editing)
+        {
+            ProductService.UpdateProduct(modalModel);
+        }
+        else
+        {
+            ProductService.CreateProduct(modalModel);
+        }
+
+        showModal = false;
+        await LoadData();
     }
 
     private async Task Delete(int id)
@@ -97,14 +204,7 @@ else
             return;
         }
         ProductService.DeleteProduct(id);
-        await LoadProducts();
-    }
-
-    private Task LoadProducts()
-    {
-        products = ProductService.GetProducts();
-        StateHasChanged();
-        return Task.CompletedTask;
+        await LoadData();
     }
 
     public async ValueTask DisposeAsync()
