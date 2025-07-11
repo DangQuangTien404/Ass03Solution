@@ -80,7 +80,7 @@ else
                                 <label class="form-label">Product</label>
                                 <InputSelect class="form-control"
                                              Value="@modalModel.ProductId"
-                                             ValueChanged="OnProductChanged"
+                                             ValueChanged="@((int id) => OnProductChanged(id))"
                                              ValueExpression="() => modalModel.ProductId">
                                     <option value="">Select product</option>
                                     @if (products != null)
@@ -200,12 +200,13 @@ else
         hideAddButton = false;
     }
 
-    private void OnProductChanged(int id)
+    private Task OnProductChanged(int id)
     {
         modalModel.ProductId = id;
         var prod = products?.FirstOrDefault(p => p.ProductId == id);
         modalModel.UnitPrice = prod?.UnitPrice ?? 0;
         modalModel.ProductName = prod?.ProductName ?? string.Empty;
+        return Task.CompletedTask;
     }
 
     private async Task HandleValidSubmit()
