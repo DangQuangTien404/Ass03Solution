@@ -19,7 +19,7 @@ namespace DataAccess.Services
         {
             if (!_repository.OrderExists(dto.OrderId) || !_repository.ProductExists(dto.ProductId))
                 return false;
-            if (dto.Quantity < 1 || dto.Discount < 0 || dto.Discount > 1)
+            if (dto.Quantity < 1 || dto.Discount < 0 || dto.Discount > 100)
                 return false;
             var detail = new OrderDetail
             {
@@ -27,7 +27,7 @@ namespace DataAccess.Services
                 ProductId = dto.ProductId,
                 UnitPrice = _repository.GetProductPrice(dto.ProductId) ?? dto.UnitPrice,
                 Quantity = dto.Quantity,
-                Discount = dto.Discount
+                Discount = dto.Discount / 100
             };
             _repository.Add(detail);
             _repository.SaveChanges();
@@ -38,10 +38,10 @@ namespace DataAccess.Services
         {
             var detail = _repository.Get(dto.OrderId, dto.ProductId);
             if (detail == null) return false;
-            if (dto.Quantity < 1 || dto.Discount < 0 || dto.Discount > 1)
+            if (dto.Quantity < 1 || dto.Discount < 0 || dto.Discount > 100)
                 return false;
             detail.Quantity = dto.Quantity;
-            detail.Discount = dto.Discount;
+            detail.Discount = dto.Discount / 100;
             _repository.Update(detail);
             _repository.SaveChanges();
             return true;
@@ -63,7 +63,7 @@ namespace DataAccess.Services
             ProductName = detail.Product?.ProductName ?? _repository.GetProductName(detail.ProductId) ?? string.Empty,
             UnitPrice = detail.UnitPrice,
             Quantity = detail.Quantity,
-            Discount = detail.Discount
+            Discount = detail.Discount * 100
         };
     }
 }

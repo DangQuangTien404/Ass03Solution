@@ -39,7 +39,7 @@ else
                 <td>@d.ProductName</td>
                 <td>@d.UnitPrice</td>
                 <td>@d.Quantity</td>
-                <td>@d.Discount</td>
+                <td>@($"{d.Discount}%")</td>
                 <td>@d.Total</td>
                 <td>
                     <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(d)">Edit</button>
@@ -93,7 +93,10 @@ else
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Discount</label>
-                            <InputNumber class="form-control" @bind-Value="modalModel.Discount" step="0.01" />
+                            <div class="input-group">
+                                <InputNumber class="form-control" @bind-Value="modalModel.Discount" step="0.01" />
+                                <span class="input-group-text">%</span>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -123,6 +126,15 @@ else
             return;
         }
         LoadData();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
+        }
     }
 
     private void LoadData()
