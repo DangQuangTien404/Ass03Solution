@@ -21,15 +21,25 @@ namespace DataAccess.Services
                 return false;
             if (dto.Quantity < 1 || dto.Discount < 0 || dto.Discount > 100)
                 return false;
-            var detail = new OrderDetail
+            var existing = _repository.Get(dto.OrderId, dto.ProductId);
+            if (existing != null)
             {
-                OrderId = dto.OrderId,
-                ProductId = dto.ProductId,
-                UnitPrice = _repository.GetProductPrice(dto.ProductId) ?? dto.UnitPrice,
-                Quantity = dto.Quantity,
-                Discount = dto.Discount / 100
-            };
-            _repository.Add(detail);
+                existing.Quantity += dto.Quantity;
+                existing.Discount = dto.Discount / 100;
+                _repository.Update(existing);
+            }
+            else
+            {
+                var detail = new OrderDetail
+                {
+                    OrderId = dto.OrderId,
+                    ProductId = dto.ProductId,
+                    UnitPrice = _repository.GetProductPrice(dto.ProductId) ?? dto.UnitPrice,
+                    Quantity = dto.Quantity,
+                    Discount = dto.Discount / 100
+                };
+                _repository.Add(detail);
+            }
             _repository.SaveChanges();
             return true;
         }
