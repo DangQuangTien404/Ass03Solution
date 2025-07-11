@@ -16,10 +16,18 @@ namespace eStore
 
         private void NotifyStateChanged() => OnChange?.Invoke();
 
-        public bool Login(string email, string password)
+        public bool Login(string email, string password, AdminAccount account)
         {
             var trimmedEmail = email.Trim();
             var trimmedPassword = password.Trim();
+
+            if (string.Equals(trimmedEmail, account.Email, System.StringComparison.OrdinalIgnoreCase)
+                && trimmedPassword == account.Password)
+            {
+                IsLoggedIn = true;
+                NotifyStateChanged();
+                return true;
+            }
 
             var member = _memberRepository.GetByEmailAndPassword(trimmedEmail, trimmedPassword);
             if (member != null)
