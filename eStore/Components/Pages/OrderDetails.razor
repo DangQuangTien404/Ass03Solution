@@ -87,6 +87,10 @@ else
                                     {
                                         foreach (var p in products)
                                         {
+                                            if (details != null && details.Any(d => d.ProductId == p.ProductId))
+                                            {
+                                                continue;
+                                            }
                                             <option value="@p.ProductId">@p.ProductName</option>
                                         }
                                     }
