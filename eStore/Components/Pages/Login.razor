@@ -1,6 +1,5 @@
 @page "/login"
 @rendermode InteractiveServer
-@inject Microsoft.Extensions.Options.IOptions<eStore.AdminAccount> AdminOptions
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 
@@ -43,11 +42,10 @@ else
 
     private void HandleLogin()
     {
-        var admin = AdminOptions.Value;
         var email = loginModel.Email?.Trim();
         var password = loginModel.Password?.Trim();
 
-        if (AuthService.Login(email, password, admin))
+        if (AuthService.Login(email, password))
         {
             successMessage = "Login successful.";
             error = null;
