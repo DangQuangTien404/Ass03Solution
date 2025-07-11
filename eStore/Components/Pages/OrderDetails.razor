@@ -95,12 +95,12 @@ else
                         }
                         <div class="mb-3">
                             <label class="form-label">Quantity</label>
-                            <InputNumber class="form-control" @bind-Value="modalModel.Quantity" @bind-Value:event="oninput" />
+                            <InputNumber class="form-control" @bind-Value="modalModel.Quantity" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Discount</label>
                             <div class="input-group">
-                                <InputNumber class="form-control" @bind-Value="modalModel.Discount" @bind-Value:event="oninput" step="0.01" />
+                                <InputNumber class="form-control" @bind-Value="modalModel.Discount" step="0.01" />
                                 <span class="input-group-text">%</span>
                             </div>
                         </div>
