@@ -3,6 +3,8 @@
 @inject DataAccess.Services.ICategoryService CategoryService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
 
 <PageTitle>Categories</PageTitle>
 
@@ -40,8 +42,9 @@ else
 @code {
     private IEnumerable<BusinessObject.DTOs.CategoryDto>? categories;
     private bool redirectToLogin;
+    private HubConnection? hubConnection;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.IsLoggedIn)
         {
@@ -49,7 +52,18 @@ else
             return;
         }
 
-        categories = CategoryService.GetCategories();
+        await LoadCategories();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/categoryHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<BusinessObject.DTOs.CategoryDto>("CategoryCreated", _ => InvokeAsync(LoadCategories));
+        hubConnection.On<BusinessObject.DTOs.CategoryDto>("CategoryUpdated", _ => InvokeAsync(LoadCategories));
+        hubConnection.On<int>("CategoryDeleted", _ => InvokeAsync(LoadCategories));
+
+        await hubConnection.StartAsync();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -71,10 +85,25 @@ else
         Navigation.NavigateTo($"/categories/edit/{id}");
     }
 
+
     private void Delete(int id)
     {
         CategoryService.DeleteCategory(id);
+        _ = LoadCategories();
+    }
+
+    private Task LoadCategories()
+    {
         categories = CategoryService.GetCategories();
         StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }

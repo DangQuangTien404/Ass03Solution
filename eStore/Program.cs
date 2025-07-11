@@ -39,5 +39,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapHub<ProductHub>("/productHub");
+app.MapHub<CategoryHub>("/categoryHub");
 
 app.Run();

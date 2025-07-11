@@ -1,15 +1,19 @@
 using BusinessObject.DTOs;
 using DataAccess.Repositories;
+using DataAccess.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DataAccess.Services
 {
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _repository;
+        private readonly IHubContext<CategoryHub>? _hub;
 
-        public CategoryService(ICategoryRepository repository)
+        public CategoryService(ICategoryRepository repository, IHubContext<CategoryHub>? hub = null)
         {
             _repository = repository;
+            _hub = hub;
         }
 
         public IEnumerable<CategoryDto> GetCategories() =>
@@ -30,6 +34,7 @@ namespace DataAccess.Services
             _repository.Add(category);
             _repository.SaveChanges();
             dto.CategoryId = category.CategoryId;
+            _hub?.Clients.All.SendAsync("CategoryCreated", ToDto(category));
         }
 
         public void UpdateCategory(CategoryDto dto)
@@ -39,6 +44,7 @@ namespace DataAccess.Services
             category.CategoryName = dto.CategoryName;
             _repository.Update(category);
             _repository.SaveChanges();
+            _hub?.Clients.All.SendAsync("CategoryUpdated", ToDto(category));
         }
 
         public void DeleteCategory(int id)
@@ -47,6 +53,7 @@ namespace DataAccess.Services
             if (category == null) return;
             _repository.Delete(category);
             _repository.SaveChanges();
+            _hub?.Clients.All.SendAsync("CategoryDeleted", id);
         }
 
         private static CategoryDto ToDto(BusinessObject.Category c) => new()
