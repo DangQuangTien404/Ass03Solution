@@ -77,7 +77,7 @@ else
                                 <label class="form-label">Product</label>
                                 <InputSelect class="form-control"
                                              Value="@modalModel.ProductId"
-                                             ValueChanged="OnProductChanged"
+                                            ValueChanged="@((int id) => OnProductChanged(id))"
                                              ValueExpression="() => modalModel.ProductId">
                                     <option value="">Select product</option>
                                     @if (products != null)
