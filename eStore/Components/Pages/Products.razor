@@ -63,9 +63,9 @@ else
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<BusinessObject.DTOs.ProductDto>("ProductCreated", async _ => await LoadProducts());
-        hubConnection.On<BusinessObject.DTOs.ProductDto>("ProductUpdated", async _ => await LoadProducts());
-        hubConnection.On<int>("ProductDeleted", async _ => await LoadProducts());
+        hubConnection.On<BusinessObject.DTOs.ProductDto>("ProductCreated", _ => InvokeAsync(LoadProducts));
+        hubConnection.On<BusinessObject.DTOs.ProductDto>("ProductUpdated", _ => InvokeAsync(LoadProducts));
+        hubConnection.On<int>("ProductDeleted", _ => InvokeAsync(LoadProducts));
 
         await hubConnection.StartAsync();
     }
