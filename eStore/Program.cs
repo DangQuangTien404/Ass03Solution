@@ -20,6 +20,8 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddSignalR();
 
 
@@ -40,5 +42,6 @@ app.MapRazorComponents<App>()
 
 app.MapHub<ProductHub>("/productHub");
 app.MapHub<CategoryHub>("/categoryHub");
+app.MapHub<OrderHub>("/orderHub");
 
 app.Run();

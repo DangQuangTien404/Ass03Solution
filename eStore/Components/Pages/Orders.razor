@@ -1,0 +1,203 @@
+@page "/orders"
+@rendermode InteractiveServer
+@inject DataAccess.Services.IOrderService OrderService
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
+@using Microsoft.AspNetCore.SignalR.Client
+@using BusinessObject.DTOs
+@implements IAsyncDisposable
+
+<PageTitle>Orders</PageTitle>
+
+@if (orders == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <input class="form-control mb-2" placeholder="Search by member id" @bind="searchTerm" @bind:event="oninput" />
+    <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Order</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Member</th>
+                <th>Order Date</th>
+                <th>Required</th>
+                <th>Shipped</th>
+                <th>Freight</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var o in FilteredOrders)
+        {
+            <tr>
+                <td>@o.OrderId</td>
+                <td>@o.MemberId</td>
+                <td>@o.OrderDate.ToShortDateString()</td>
+                <td>@o.RequiredDate?.ToShortDateString()</td>
+                <td>@o.ShippedDate?.ToShortDateString()</td>
+                <td>@o.Freight</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(o.OrderId)">Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(o.OrderId)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@((editing ? "Edit Order" : "Create Order"))</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <EditForm Model="modalModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Member Id</label>
+                            <InputNumber class="form-control" @bind-Value="modalModel.MemberId" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Order Date</label>
+                            <InputDate class="form-control" @bind-Value="modalModel.OrderDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Required Date</label>
+                            <InputDate class="form-control" @bind-Value="modalModel.RequiredDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Shipped Date</label>
+                            <InputDate class="form-control" @bind-Value="modalModel.ShippedDate" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Freight</label>
+                            <InputNumber class="form-control" @bind-Value="modalModel.Freight" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private IEnumerable<OrderDto>? orders;
+    private string searchTerm = string.Empty;
+    private bool redirectToLogin;
+    private HubConnection? hubConnection;
+
+    private bool showModal;
+    private bool editing;
+    private OrderDto modalModel = new();
+
+    private IEnumerable<OrderDto> FilteredOrders => string.IsNullOrWhiteSpace(searchTerm)
+        ? orders ?? Enumerable.Empty<OrderDto>()
+        : orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            ?? Enumerable.Empty<OrderDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsLoggedIn)
+        {
+            redirectToLogin = true;
+            return;
+        }
+
+        await LoadData();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/orderHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadData));
+        hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadData));
+        hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadData));
+
+        await hubConnection.StartAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private Task LoadData()
+    {
+        orders = OrderService.GetOrders();
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void ShowCreate()
+    {
+        editing = false;
+        modalModel = new OrderDto { OrderDate = DateTime.Now };
+        showModal = true;
+    }
+
+    private void ShowEdit(int id)
+    {
+        var order = OrderService.GetOrder(id);
+        if (order == null) return;
+        editing = true;
+        modalModel = order;
+        showModal = true;
+    }
+
+    private void CloseModal() => showModal = false;
+
+    private async Task HandleValidSubmit()
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+            return;
+
+        bool success = editing ? OrderService.UpdateOrder(modalModel) : OrderService.CreateOrder(modalModel);
+        if (!success)
+        {
+            await Js.InvokeVoidAsync("alert", "Invalid data or member does not exist.");
+            return;
+        }
+
+        showModal = false;
+        await LoadData();
+    }
+
+    private async Task Delete(int id)
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Delete this order?"))
+            return;
+        var result = OrderService.DeleteOrder(id);
+        if (!result)
+        {
+            await Js.InvokeVoidAsync("alert", "Order has details and cannot be deleted.");
+            return;
+        }
+        await LoadData();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
