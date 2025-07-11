@@ -1,16 +1,19 @@
 using BusinessObject;
 using BusinessObject.DTOs;
 using DataAccess.Repositories;
+using DataAccess.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DataAccess.Services
 {
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
-
-        public ProductService(IProductRepository repository)
+        private readonly IHubContext<ProductHub>? _hub;
+        public ProductService(IProductRepository repository, IHubContext<ProductHub>? hub = null)
         {
             _repository = repository;
+            _hub = hub;
         }
 
         public IEnumerable<ProductDto> GetProducts() =>
@@ -35,6 +38,7 @@ namespace DataAccess.Services
             _repository.Add(product);
             _repository.SaveChanges();
             dto.ProductId = product.ProductId;
+            _hub?.Clients.All.SendAsync("ProductCreated", ToDto(product));
         }
 
         public void UpdateProduct(ProductDto dto)
@@ -48,6 +52,7 @@ namespace DataAccess.Services
             product.UnitsInStock = dto.UnitsInStock;
             _repository.Update(product);
             _repository.SaveChanges();
+            _hub?.Clients.All.SendAsync("ProductUpdated", ToDto(product));
         }
 
         public void DeleteProduct(int id)
@@ -56,6 +61,7 @@ namespace DataAccess.Services
             if (product == null) return;
             _repository.Delete(product);
             _repository.SaveChanges();
+            _hub?.Clients.All.SendAsync("ProductDeleted", id);
         }
 
         private static ProductDto ToDto(Product product) => new()
