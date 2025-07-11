@@ -41,6 +41,7 @@ else
                 <td>@o.ShippedDate?.ToShortDateString()</td>
                 <td>@o.Freight</td>
                 <td>
+                    <button class="btn btn-sm btn-info me-1" @onclick="() => Details(o.OrderId)">Details</button>
                     <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(o.OrderId)">Edit</button>
                     <button class="btn btn-sm btn-danger" @onclick="() => Delete(o.OrderId)">Delete</button>
                 </td>
@@ -163,6 +164,11 @@ else
     }
 
     private void CloseModal() => showModal = false;
+
+    private void Details(int id)
+    {
+        Navigation.NavigateTo($"/orders/{id}/details");
+    }
 
     private async Task HandleValidSubmit()
     {
