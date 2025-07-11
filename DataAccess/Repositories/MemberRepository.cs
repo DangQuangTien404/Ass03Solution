@@ -16,6 +16,13 @@ namespace DataAccess.Repositories
 
         public Member? GetById(int id) => _context.Members.Find(id);
 
+        public Member? GetByEmailAndPassword(string email, string password)
+        {
+            var lowerEmail = email.ToLower();
+            return _context.Members.AsNoTracking()
+                .SingleOrDefault(m => m.Email.ToLower() == lowerEmail && m.Password == password);
+        }
+
         public void Add(Member member) => _context.Members.Add(member);
 
         public void Update(Member member) => _context.Members.Update(member);
