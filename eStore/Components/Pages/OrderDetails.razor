@@ -75,7 +75,10 @@ else
                         {
                             <div class="mb-3">
                                 <label class="form-label">Product</label>
-                                <InputSelect class="form-control" @bind-Value="modalModel.ProductId" @onchange="OnProductChanged">
+                                <InputSelect class="form-control"
+                                             Value="@modalModel.ProductId"
+                                             ValueChanged="OnProductChanged"
+                                             ValueExpression="() => modalModel.ProductId">
                                     <option value="">Select product</option>
                                     @if (products != null)
                                     {
@@ -186,15 +189,12 @@ else
 
     private void CloseModal() => showModal = false;
 
-    private void OnProductChanged(ChangeEventArgs e)
+    private void OnProductChanged(int id)
     {
-        if (int.TryParse(e.Value?.ToString(), out var id))
-        {
-            modalModel.ProductId = id;
-            var prod = products?.FirstOrDefault(p => p.ProductId == id);
-            modalModel.UnitPrice = prod?.UnitPrice ?? 0;
-            modalModel.ProductName = prod?.ProductName ?? string.Empty;
-        }
+        modalModel.ProductId = id;
+        var prod = products?.FirstOrDefault(p => p.ProductId == id);
+        modalModel.UnitPrice = prod?.UnitPrice ?? 0;
+        modalModel.ProductName = prod?.ProductName ?? string.Empty;
     }
 
     private async Task HandleValidSubmit()
