@@ -4,6 +4,7 @@ using eStore.Components;
 using Microsoft.EntityFrameworkCore;
 using DataAccess.Repositories;
 using DataAccess.Services;
+using DataAccess.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
@@ -35,5 +37,7 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapHub<ProductHub>("/productHub");
 
 app.Run();

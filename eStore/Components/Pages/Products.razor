@@ -3,6 +3,8 @@
 @inject DataAccess.Services.IProductService ProductService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
 
 <PageTitle>Products</PageTitle>
 
@@ -44,8 +46,9 @@ else
 @code {
     private IEnumerable<BusinessObject.DTOs.ProductDto>? products;
     private bool redirectToLogin;
+    private HubConnection? hubConnection;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.IsLoggedIn)
         {
@@ -53,7 +56,18 @@ else
             return;
         }
 
-        products = ProductService.GetProducts();
+        await LoadProducts();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/productHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On("ProductCreated", async () => await LoadProducts());
+        hubConnection.On("ProductUpdated", async () => await LoadProducts());
+        hubConnection.On("ProductDeleted", async () => await LoadProducts());
+
+        await hubConnection.StartAsync();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -78,7 +92,20 @@ else
     private void Delete(int id)
     {
         ProductService.DeleteProduct(id);
+    }
+
+    private Task LoadProducts()
+    {
         products = ProductService.GetProducts();
         StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }
