@@ -5,6 +5,7 @@
 @inject DataAccess.Services.ICategoryService CategoryService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
 @using BusinessObject.DTOs
 
 <PageTitle>Product</PageTitle>
@@ -79,8 +80,12 @@
         }
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+        {
+            return;
+        }
         if (Id.HasValue)
         {
             ProductService.UpdateProduct(model);

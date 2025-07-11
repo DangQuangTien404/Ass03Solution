@@ -29,7 +29,8 @@ namespace DataAccess.Services
         {
             var category = new BusinessObject.Category
             {
-                CategoryName = dto.CategoryName
+                CategoryName = dto.CategoryName,
+                Description = dto.Description
             };
             _repository.Add(category);
             _repository.SaveChanges();
@@ -42,24 +43,28 @@ namespace DataAccess.Services
             var category = _repository.GetById(dto.CategoryId);
             if (category == null) return;
             category.CategoryName = dto.CategoryName;
+            category.Description = dto.Description;
             _repository.Update(category);
             _repository.SaveChanges();
             _hub?.Clients.All.SendAsync("CategoryUpdated", ToDto(category));
         }
 
-        public void DeleteCategory(int id)
+        public bool DeleteCategory(int id)
         {
+            if (_repository.IsInUse(id)) return false;
             var category = _repository.GetById(id);
-            if (category == null) return;
+            if (category == null) return false;
             _repository.Delete(category);
             _repository.SaveChanges();
             _hub?.Clients.All.SendAsync("CategoryDeleted", id);
+            return true;
         }
 
         private static CategoryDto ToDto(BusinessObject.Category c) => new()
         {
             CategoryId = c.CategoryId,
-            CategoryName = c.CategoryName
+            CategoryName = c.CategoryName,
+            Description = c.Description
         };
     }
 }

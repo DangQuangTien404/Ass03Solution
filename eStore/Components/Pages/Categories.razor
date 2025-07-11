@@ -3,6 +3,7 @@
 @inject DataAccess.Services.ICategoryService CategoryService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 
@@ -20,6 +21,7 @@ else
             <tr>
                 <th>Id</th>
                 <th>Name</th>
+                <th>Description</th>
                 <th></th>
             </tr>
         </thead>
@@ -29,6 +31,7 @@ else
             <tr>
                 <td>@c.CategoryId</td>
                 <td>@c.CategoryName</td>
+                <td>@c.Description</td>
                 <td>
                     <button class="btn btn-sm btn-secondary me-1" @onclick="() => Edit(c.CategoryId)">Edit</button>
                     <button class="btn btn-sm btn-danger" @onclick="() => Delete(c.CategoryId)">Delete</button>
@@ -86,10 +89,19 @@ else
     }
 
 
-    private void Delete(int id)
+    private async Task Delete(int id)
     {
-        CategoryService.DeleteCategory(id);
-        _ = LoadCategories();
+        if (!await Js.InvokeAsync<bool>("confirm", "Delete this category?"))
+        {
+            return;
+        }
+        var deleted = CategoryService.DeleteCategory(id);
+        if (!deleted)
+        {
+            await Js.InvokeVoidAsync("alert", "Category is in use and cannot be deleted.");
+            return;
+        }
+        await LoadCategories();
     }
 
     private Task LoadCategories()

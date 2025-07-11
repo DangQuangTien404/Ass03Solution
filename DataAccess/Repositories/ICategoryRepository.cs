@@ -9,6 +9,7 @@ namespace DataAccess.Repositories
         void Add(Category category);
         void Update(Category category);
         void Delete(Category category);
+        bool IsInUse(int categoryId);
         void SaveChanges();
     }
 }

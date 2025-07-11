@@ -3,6 +3,7 @@
 @inject DataAccess.Services.IProductService ProductService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 
@@ -89,10 +90,14 @@ else
         Navigation.NavigateTo($"/products/edit/{id}");
     }
 
-    private void Delete(int id)
+    private async Task Delete(int id)
     {
+        if (!await Js.InvokeAsync<bool>("confirm", "Delete this product?"))
+        {
+            return;
+        }
         ProductService.DeleteProduct(id);
-        LoadProducts();
+        await LoadProducts();
     }
 
     private Task LoadProducts()

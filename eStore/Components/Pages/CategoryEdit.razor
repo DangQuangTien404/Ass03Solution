@@ -4,6 +4,7 @@
 @inject DataAccess.Services.ICategoryService CategoryService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
 @using BusinessObject.DTOs
 
 <PageTitle>Category</PageTitle>
@@ -13,6 +14,10 @@
     <div class="mb-3">
         <label class="form-label">Name</label>
         <InputText class="form-control" @bind-Value="model.CategoryName" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <InputText class="form-control" @bind-Value="model.Description" />
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <button type="button" class="btn btn-secondary ms-2" @onclick="Back">Back</button>
@@ -50,8 +55,12 @@
         }
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+        {
+            return;
+        }
         if (Id.HasValue)
         {
             CategoryService.UpdateCategory(model);

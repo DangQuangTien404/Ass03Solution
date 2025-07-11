@@ -22,6 +22,9 @@ namespace DataAccess.Repositories
 
         public void Delete(Category category) => _context.Categories.Remove(category);
 
+        public bool IsInUse(int categoryId) =>
+            _context.Products.AsNoTracking().Any(p => p.CategoryId == categoryId);
+
         public void SaveChanges() => _context.SaveChanges();
     }
 }

@@ -8,6 +8,6 @@ namespace DataAccess.Services
         CategoryDto? GetCategory(int id);
         void CreateCategory(CategoryDto dto);
         void UpdateCategory(CategoryDto dto);
-        void DeleteCategory(int id);
+        bool DeleteCategory(int id);
     }
 }
