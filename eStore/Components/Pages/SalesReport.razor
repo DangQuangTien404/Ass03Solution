@@ -1,6 +1,7 @@
 @page "/sales-report"
 @rendermode InteractiveServer
-@inject DataAccess.Services.IOrderService OrderService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 
@@ -77,8 +78,9 @@ else
         }
     }
 
-    private void GenerateReport()
+    private async Task GenerateReport()
     {
-        report = OrderService.GetSalesReport(StartDate, EndDate);
+        report = await Http.GetFromJsonAsync<IEnumerable<BusinessObject.DTOs.SalesReportDto>>(
+            $"api/SalesReport?startDate={StartDate:O}&endDate={EndDate:O}");
     }
 }

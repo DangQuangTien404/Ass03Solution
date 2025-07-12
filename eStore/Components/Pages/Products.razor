@@ -1,7 +1,7 @@
 @page "/products"
 @rendermode InteractiveServer
-@inject DataAccess.Services.IProductService ProductService
-@inject DataAccess.Services.ICategoryService CategoryService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -150,12 +150,11 @@ else
         }
     }
 
-    private Task LoadData()
+    private async Task LoadData()
     {
-        products = ProductService.GetProducts();
-        categories = CategoryService.GetCategories();
+        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>("api/Products");
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     private void ShowCreate()
@@ -165,9 +164,9 @@ else
         showModal = true;
     }
 
-    private void ShowEdit(int id)
+    private async Task ShowEdit(int id)
     {
-        var product = ProductService.GetProduct(id);
+        var product = await Http.GetFromJsonAsync<ProductDto>($"api/Products/{id}");
         if (product == null) return;
         editing = true;
         modalModel = product;
@@ -188,11 +187,11 @@ else
 
         if (editing)
         {
-            ProductService.UpdateProduct(modalModel);
+            await Http.PutAsJsonAsync($"api/Products/{modalModel.ProductId}", modalModel);
         }
         else
         {
-            ProductService.CreateProduct(modalModel);
+            await Http.PostAsJsonAsync("api/Products", modalModel);
         }
 
         showModal = false;
@@ -205,7 +204,7 @@ else
         {
             return;
         }
-        ProductService.DeleteProduct(id);
+        await Http.DeleteAsync($"api/Products/{id}");
         await LoadData();
     }
 
