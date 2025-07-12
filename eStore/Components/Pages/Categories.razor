@@ -1,6 +1,7 @@
 @page "/categories"
 @rendermode InteractiveServer
-@inject DataAccess.Services.ICategoryService CategoryService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -128,9 +129,9 @@ else
         showModal = true;
     }
 
-    private void ShowEdit(int id)
+    private async Task ShowEdit(int id)
     {
-        var category = CategoryService.GetCategory(id);
+        var category = await Http.GetFromJsonAsync<CategoryDto>($"api/Categories/{id}");
         if (category == null) return;
         editing = true;
         modalModel = category;
@@ -151,11 +152,11 @@ else
 
         if (editing)
         {
-            CategoryService.UpdateCategory(modalModel);
+            await Http.PutAsJsonAsync($"api/Categories/{modalModel.CategoryId}", modalModel);
         }
         else
         {
-            CategoryService.CreateCategory(modalModel);
+            await Http.PostAsJsonAsync("api/Categories", modalModel);
         }
 
         showModal = false;
@@ -168,8 +169,8 @@ else
         {
             return;
         }
-        var deleted = CategoryService.DeleteCategory(id);
-        if (!deleted)
+        var response = await Http.DeleteAsync($"api/Categories/{id}");
+        if (!response.IsSuccessStatusCode)
         {
             await Js.InvokeVoidAsync("alert", "Category is in use and cannot be deleted.");
             return;
@@ -177,11 +178,10 @@ else
         await LoadCategories();
     }
 
-    private Task LoadCategories()
+    private async Task LoadCategories()
     {
-        categories = CategoryService.GetCategories();
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()

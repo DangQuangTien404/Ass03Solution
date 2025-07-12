@@ -1,8 +1,7 @@
 @page "/orders/{OrderId:int}/details"
 @rendermode InteractiveServer
-@inject DataAccess.Services.IOrderDetailService DetailService
-@inject DataAccess.Services.IProductService ProductService
-@inject DataAccess.Services.IOrderService OrderService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -149,21 +148,21 @@ else
         modalModel.Discount >= 0 &&
         modalModel.Discount <= 100;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (!AuthService.IsLoggedIn)
         {
             redirectToLogin = true;
             return;
         }
-        order = OrderService.GetOrder(OrderId);
+        order = await Http.GetFromJsonAsync<OrderDto>($"api/Orders/{OrderId}");
         if (order == null || (!isAdmin && order.MemberId != AuthService.MemberId))
         {
             redirectToLogin = true;
             return;
         }
 
-        LoadData();
+        await LoadData();
         if (isAdmin && details != null && !details.Any())
         {
             ShowCreate();
@@ -179,10 +178,10 @@ else
         }
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        details = DetailService.GetDetails(OrderId);
-        products = ProductService.GetProducts();
+        details = await Http.GetFromJsonAsync<IEnumerable<OrderDetailDto>>($"api/OrderDetails/{OrderId}");
+        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>("api/Products");
     }
 
     private void ShowCreate()
@@ -228,16 +227,18 @@ else
         if (!isAdmin) return;
         if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
             return;
-        bool success = editing
-            ? DetailService.UpdateDetail(modalModel)
-            : DetailService.CreateDetail(modalModel);
-        if (!success)
+        HttpResponseMessage response;
+        if (editing)
+            response = await Http.PutAsJsonAsync("api/OrderDetails", modalModel);
+        else
+            response = await Http.PostAsJsonAsync("api/OrderDetails", modalModel);
+        if (!response.IsSuccessStatusCode)
         {
             await Js.InvokeVoidAsync("alert", "Invalid data");
             return;
         }
         showModal = false;
-        LoadData();
+        await LoadData();
         StateHasChanged();
     }
 
@@ -246,9 +247,12 @@ else
         if (!isAdmin) return;
         if (!await Js.InvokeAsync<bool>("confirm", "Delete this item?"))
             return;
-        DetailService.DeleteDetail(OrderId, productId);
-        LoadData();
-        StateHasChanged();
+        var response = await Http.DeleteAsync($"api/OrderDetails/{OrderId}/{productId}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadData();
+            StateHasChanged();
+        }
     }
 
     private void Back() => Navigation.NavigateTo("/orders");
