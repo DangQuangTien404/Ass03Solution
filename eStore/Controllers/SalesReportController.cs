@@ -16,5 +16,6 @@ public class SalesReportController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<SalesReportDto>> Get(DateTime startDate, DateTime endDate) => Ok(_service.GetSalesReport(startDate, endDate));
+    public ActionResult<IEnumerable<SalesReportDto>> Get([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        => Ok(_service.GetSalesReport(startDate, endDate));
 }

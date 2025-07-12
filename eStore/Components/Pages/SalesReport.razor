@@ -80,7 +80,9 @@ else
 
     private async Task GenerateReport()
     {
+        var start = Uri.EscapeDataString(StartDate.ToString("yyyy-MM-dd"));
+        var end = Uri.EscapeDataString(EndDate.ToString("yyyy-MM-dd"));
         report = await Http.GetFromJsonAsync<IEnumerable<BusinessObject.DTOs.SalesReportDto>>(
-            $"api/SalesReport?startDate={StartDate:O}&endDate={EndDate:O}");
+            $"api/SalesReport?startDate={start}&endDate={end}");
     }
 }
