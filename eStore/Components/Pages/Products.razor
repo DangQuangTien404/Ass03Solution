@@ -17,7 +17,8 @@
 }
 else
 {
-    <input class="form-control mb-2" placeholder="Search by name" @bind="searchTerm" @bind:event="oninput" />
+    <input class="form-control mb-2" placeholder="Search by name" @bind="searchName" @bind:event="oninput" />
+    <InputNumber class="form-control mb-2" placeholder="Search by price" @bind-Value="searchPrice" />
     <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Product</button>
     <table class="table table-striped">
         <thead>
@@ -106,16 +107,17 @@ else
     private IEnumerable<CategoryDto>? categories;
     private bool redirectToLogin;
     private HubConnection? hubConnection;
-    private string searchTerm = string.Empty;
+    private string searchName = string.Empty;
+    private decimal? searchPrice;
 
     private bool showModal;
     private bool editing;
     private ProductDto modalModel = new();
 
-    private IEnumerable<ProductDto> FilteredProducts => string.IsNullOrWhiteSpace(searchTerm)
-        ? products ?? Enumerable.Empty<ProductDto>()
-        : products?.Where(p => p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-            ?? Enumerable.Empty<ProductDto>();
+    private IEnumerable<ProductDto> FilteredProducts => products?
+        .Where(p => (string.IsNullOrWhiteSpace(searchName) || p.ProductName.Contains(searchName, StringComparison.OrdinalIgnoreCase))
+                 && (!searchPrice.HasValue || p.UnitPrice == searchPrice))
+        ?? Enumerable.Empty<ProductDto>();
 
     protected override async Task OnInitializedAsync()
     {
