@@ -71,6 +71,9 @@ namespace DataAccess.Services
             return true;
         }
 
+        public IEnumerable<SalesReportDto> GetSalesReport(DateTime startDate, DateTime endDate) =>
+            _repository.GetSalesReport(startDate, endDate);
+
         private static OrderDto ToDto(Order order) => new()
         {
             OrderId = order.OrderId,

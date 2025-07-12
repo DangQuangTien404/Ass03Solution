@@ -9,5 +9,6 @@ namespace DataAccess.Services
         bool CreateOrder(OrderDto dto);
         bool UpdateOrder(OrderDto dto);
         bool DeleteOrder(int id);
+        IEnumerable<SalesReportDto> GetSalesReport(DateTime startDate, DateTime endDate);
     }
 }
