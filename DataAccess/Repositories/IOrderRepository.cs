@@ -11,6 +11,7 @@ namespace DataAccess.Repositories
         void Delete(Order order);
         bool HasDetails(int orderId);
         bool MemberExists(int memberId);
+        IEnumerable<Order> GetByMemberId(int memberId);
         IEnumerable<BusinessObject.DTOs.SalesReportDto> GetSalesReport(DateTime startDate, DateTime endDate);
         void SaveChanges();
     }

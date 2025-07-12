@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject DataAccess.Services.IOrderDetailService DetailService
 @inject DataAccess.Services.IProductService ProductService
+@inject DataAccess.Services.IOrderService OrderService
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -20,7 +21,7 @@ else if (details == null)
 else
 {
     <button class="btn btn-secondary mb-2" @onclick="Back">Back</button>
-    @if (!showModal)
+    @if (isAdmin && !showModal)
     {
         <button class="btn btn-primary mb-2 ms-2" @onclick="ShowCreate">Add Item</button>
     }
@@ -45,8 +46,11 @@ else
                 <td>@($"{d.Discount}%")</td>
                 <td>@d.Total</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(d)">Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(d.ProductId)">Delete</button>
+                    @if (isAdmin)
+                    {
+                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(d)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(d.ProductId)">Delete</button>
+                    }
                 </td>
             </tr>
         }
@@ -132,10 +136,12 @@ else
     [Parameter] public int OrderId { get; set; }
     private IEnumerable<OrderDetailDto>? details;
     private IEnumerable<ProductDto>? products;
+    private OrderDto? order;
     private bool redirectToLogin;
     private bool showModal;
     private bool editing;
     private OrderDetailDto modalModel = new();
+    private bool isAdmin => AuthService.IsAdmin;
 
     private bool PreviewReady =>
         modalModel.ProductId > 0 &&
@@ -150,8 +156,15 @@ else
             redirectToLogin = true;
             return;
         }
+        order = OrderService.GetOrder(OrderId);
+        if (order == null || (!isAdmin && order.MemberId != AuthService.MemberId))
+        {
+            redirectToLogin = true;
+            return;
+        }
+
         LoadData();
-        if (details != null && !details.Any())
+        if (isAdmin && details != null && !details.Any())
         {
             ShowCreate();
         }
@@ -174,6 +187,7 @@ else
 
     private void ShowCreate()
     {
+        if (!isAdmin) return;
         editing = false;
         modalModel = new OrderDetailDto { OrderId = OrderId, Quantity = 1, Discount = 0 };
         showModal = true;
@@ -181,6 +195,7 @@ else
 
     private void ShowEdit(OrderDetailDto dto)
     {
+        if (!isAdmin) return;
         editing = true;
         modalModel = new OrderDetailDto
         {
@@ -210,6 +225,7 @@ else
 
     private async Task HandleValidSubmit()
     {
+        if (!isAdmin) return;
         if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
             return;
         bool success = editing
@@ -227,6 +243,7 @@ else
 
     private async Task Delete(int productId)
     {
+        if (!isAdmin) return;
         if (!await Js.InvokeAsync<bool>("confirm", "Delete this item?"))
             return;
         DetailService.DeleteDetail(OrderId, productId);

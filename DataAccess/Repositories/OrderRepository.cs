@@ -30,6 +30,12 @@ namespace DataAccess.Repositories
         public bool MemberExists(int memberId) =>
             _context.Members.AsNoTracking().Any(m => m.MemberId == memberId);
 
+        public IEnumerable<Order> GetByMemberId(int memberId) =>
+            _context.Orders
+                .AsNoTracking()
+                .Where(o => o.MemberId == memberId)
+                .ToList();
+
         public IEnumerable<BusinessObject.DTOs.SalesReportDto> GetSalesReport(DateTime startDate, DateTime endDate) =>
             _context.Orders
                 .AsNoTracking()

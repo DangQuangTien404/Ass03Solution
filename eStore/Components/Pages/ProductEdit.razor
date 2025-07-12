@@ -53,7 +53,7 @@
 
     protected override void OnInitialized()
     {
-        if (!AuthService.IsLoggedIn)
+        if (!AuthService.IsLoggedIn || !AuthService.IsAdmin)
         {
             redirectToLogin = true;
             return;

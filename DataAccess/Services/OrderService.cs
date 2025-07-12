@@ -20,6 +20,9 @@ namespace DataAccess.Services
         public IEnumerable<OrderDto> GetOrders() =>
             _repository.GetAll().Select(ToDto);
 
+        public IEnumerable<OrderDto> GetOrdersForMember(int memberId) =>
+            _repository.GetByMemberId(memberId).Select(ToDto);
+
         public OrderDto? GetOrder(int id)
         {
             var order = _repository.GetById(id);

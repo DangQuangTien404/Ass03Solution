@@ -12,6 +12,8 @@ namespace eStore
         }
 
         public bool IsLoggedIn { get; private set; }
+        public bool IsAdmin { get; private set; }
+        public int? MemberId { get; private set; }
         public event Action? OnChange;
 
         private void NotifyStateChanged() => OnChange?.Invoke();
@@ -21,10 +23,14 @@ namespace eStore
             var trimmedEmail = email.Trim();
             var trimmedPassword = password.Trim();
 
+            IsAdmin = false;
+            MemberId = null;
+
             if (string.Equals(trimmedEmail, account.Email, System.StringComparison.OrdinalIgnoreCase)
                 && trimmedPassword == account.Password)
             {
                 IsLoggedIn = true;
+                IsAdmin = true;
                 NotifyStateChanged();
                 return true;
             }
@@ -33,6 +39,7 @@ namespace eStore
             if (member != null)
             {
                 IsLoggedIn = true;
+                MemberId = member.MemberId;
                 NotifyStateChanged();
                 return true;
             }
@@ -43,6 +50,8 @@ namespace eStore
         public void SignOut()
         {
             IsLoggedIn = false;
+            IsAdmin = false;
+            MemberId = null;
             NotifyStateChanged();
         }
     }
