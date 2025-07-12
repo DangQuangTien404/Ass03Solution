@@ -6,7 +6,7 @@
 
 <PageTitle>Profile</PageTitle>
 
-@if (!AuthService.IsLoggedIn)
+@if (redirectToLogin)
 {
     <p>Redirecting...</p>
 }
@@ -44,18 +44,29 @@ else
 
 @code {
     private BusinessObject.DTOs.MemberDto? model;
+    private bool redirectToLogin;
 
     protected override void OnInitialized()
     {
         if (!AuthService.IsLoggedIn)
         {
-            Navigation.NavigateTo("/login");
+            redirectToLogin = true;
             return;
         }
 
         if (AuthService.MemberId is int id)
         {
             model = MemberService.GetMember(id);
+        }
+
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
         }
     }
 
