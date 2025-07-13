@@ -18,7 +18,7 @@
 else
 {
     <input class="form-control mb-2" placeholder="Search by email" @bind="searchTerm" @bind:event="oninput" />
-    <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Member</button>
+    <button class="btn btn-primary mb-2" @onclick="ShowCreate"><i class="bi bi-plus-lg me-1"></i>Create Member</button>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -40,8 +40,8 @@ else
                 <td>@m.City</td>
                 <td>@m.Country</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(m.MemberId)">Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(m.MemberId)">Delete</button>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(m.MemberId)"><i class="bi bi-pencil-square me-1"></i>Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(m.MemberId)"><i class="bi bi-trash me-1"></i>Delete</button>
                 </td>
             </tr>
         }
@@ -83,8 +83,8 @@ else
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal"><i class="bi bi-x-lg me-1"></i>Cancel</button>
                     </div>
                 </EditForm>
             </div>
