@@ -1,7 +1,8 @@
 @page "/categories/create"
 @page "/categories/edit/{Id:int}"
 @rendermode InteractiveServer
-@inject DataAccess.Services.ICategoryService CategoryService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -28,9 +29,9 @@
     private CategoryDto model = new();
     private bool redirectToLogin;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.IsLoggedIn)
+        if (!AuthService.IsLoggedIn || !AuthService.IsAdmin)
         {
             redirectToLogin = true;
             return;
@@ -38,7 +39,7 @@
 
         if (Id.HasValue)
         {
-            var category = CategoryService.GetCategory(Id.Value);
+            var category = await Http.GetFromJsonAsync<CategoryDto>($"api/Categories/{Id.Value}");
             if (category != null)
             {
                 model = category;
@@ -63,11 +64,11 @@
         }
         if (Id.HasValue)
         {
-            CategoryService.UpdateCategory(model);
+            await Http.PutAsJsonAsync($"api/Categories/{Id.Value}", model);
         }
         else
         {
-            CategoryService.CreateCategory(model);
+            await Http.PostAsJsonAsync("api/Categories", model);
         }
         Navigation.NavigateTo("/categories");
     }

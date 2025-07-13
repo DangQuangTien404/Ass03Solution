@@ -1,6 +1,7 @@
 @page "/orders"
 @rendermode InteractiveServer
-@inject DataAccess.Services.IOrderService OrderService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -16,8 +17,11 @@
 }
 else
 {
-    <input class="form-control mb-2" placeholder="Search by member id" @bind="searchTerm" @bind:event="oninput" />
-    <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Order</button>
+    @if (isAdmin)
+    {
+        <input class="form-control mb-2" placeholder="Search by member id" @bind="searchTerm" @bind:event="oninput" />
+        <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Order</button>
+    }
     <table class="table table-striped">
         <thead>
             <tr>
@@ -42,8 +46,11 @@ else
                 <td>@o.Freight</td>
                 <td>
                     <button class="btn btn-sm btn-info me-1" @onclick="() => Details(o.OrderId)">Details</button>
-                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(o.OrderId)">Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(o.OrderId)">Delete</button>
+                    @if (isAdmin)
+                    {
+                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(o.OrderId)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(o.OrderId)">Delete</button>
+                    }
                 </td>
             </tr>
         }
@@ -99,15 +106,16 @@ else
     private string searchTerm = string.Empty;
     private bool redirectToLogin;
     private HubConnection? hubConnection;
+    private bool isAdmin => AuthService.IsAdmin;
 
     private bool showModal;
     private bool editing;
     private OrderDto modalModel = new();
 
-    private IEnumerable<OrderDto> FilteredOrders => string.IsNullOrWhiteSpace(searchTerm)
-        ? orders ?? Enumerable.Empty<OrderDto>()
-        : orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-            ?? Enumerable.Empty<OrderDto>();
+    private IEnumerable<OrderDto> FilteredOrders =>
+        isAdmin && !string.IsNullOrWhiteSpace(searchTerm)
+            ? orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<OrderDto>()
+            : orders ?? Enumerable.Empty<OrderDto>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -119,16 +127,19 @@ else
 
         await LoadData();
 
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/orderHub"))
-            .WithAutomaticReconnect()
-            .Build();
+        if (isAdmin)
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("/orderHub"))
+                .WithAutomaticReconnect()
+                .Build();
 
-        hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadData));
-        hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadData));
-        hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadData));
+            hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadData));
+            hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadData));
+            hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadData));
 
-        await hubConnection.StartAsync();
+            await hubConnection.StartAsync();
+        }
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -140,23 +151,26 @@ else
         }
     }
 
-    private Task LoadData()
+    private async Task LoadData()
     {
-        orders = OrderService.GetOrders();
+        orders = isAdmin
+            ? await Http.GetFromJsonAsync<IEnumerable<OrderDto>>("api/Orders")
+            : await Http.GetFromJsonAsync<IEnumerable<OrderDto>>($"api/Orders/member/{AuthService.MemberId ?? 0}");
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     private void ShowCreate()
     {
+        if (!isAdmin) return;
         editing = false;
         modalModel = new OrderDto { OrderDate = DateTime.Now };
         showModal = true;
     }
 
-    private void ShowEdit(int id)
+    private async Task ShowEdit(int id)
     {
-        var order = OrderService.GetOrder(id);
+        if (!isAdmin) return;
+        var order = await Http.GetFromJsonAsync<OrderDto>($"api/Orders/{id}");
         if (order == null) return;
         editing = true;
         modalModel = order;
@@ -172,11 +186,20 @@ else
 
     private async Task HandleValidSubmit()
     {
+        if (!isAdmin) return;
         if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
             return;
 
-        bool success = editing ? OrderService.UpdateOrder(modalModel) : OrderService.CreateOrder(modalModel);
-        if (!success)
+        HttpResponseMessage response;
+        if (editing)
+        {
+            response = await Http.PutAsJsonAsync($"api/Orders/{modalModel.OrderId}", modalModel);
+        }
+        else
+        {
+            response = await Http.PostAsJsonAsync("api/Orders", modalModel);
+        }
+        if (!response.IsSuccessStatusCode)
         {
             await Js.InvokeVoidAsync("alert", "Invalid data or member does not exist.");
             return;
@@ -188,10 +211,11 @@ else
 
     private async Task Delete(int id)
     {
+        if (!isAdmin) return;
         if (!await Js.InvokeAsync<bool>("confirm", "Delete this order?"))
             return;
-        var result = OrderService.DeleteOrder(id);
-        if (!result)
+        var response = await Http.DeleteAsync($"api/Orders/{id}");
+        if (!response.IsSuccessStatusCode)
         {
             await Js.InvokeVoidAsync("alert", "Order has details and cannot be deleted.");
             return;

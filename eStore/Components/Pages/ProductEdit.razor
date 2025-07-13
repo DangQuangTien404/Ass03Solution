@@ -1,8 +1,8 @@
 @page "/products/create"
 @page "/products/edit/{Id:int}"
 @rendermode InteractiveServer
-@inject DataAccess.Services.IProductService ProductService
-@inject DataAccess.Services.ICategoryService CategoryService
+@using System.Net.Http.Json
+@inject HttpClient Http
 @inject Microsoft.AspNetCore.Components.NavigationManager Navigation
 @inject eStore.AdminAuthService AuthService
 @inject Microsoft.JSInterop.IJSRuntime Js
@@ -51,19 +51,19 @@
     private IEnumerable<CategoryDto>? categories;
     private bool redirectToLogin;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (!AuthService.IsLoggedIn)
+        if (!AuthService.IsLoggedIn || !AuthService.IsAdmin)
         {
             redirectToLogin = true;
             return;
         }
 
-        categories = CategoryService.GetCategories();
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
 
         if (Id.HasValue)
         {
-            var product = ProductService.GetProduct(Id.Value);
+            var product = await Http.GetFromJsonAsync<ProductDto>($"api/Products/{Id.Value}");
             if (product != null)
             {
                 model = product;
@@ -88,11 +88,11 @@
         }
         if (Id.HasValue)
         {
-            ProductService.UpdateProduct(model);
+            await Http.PutAsJsonAsync($"api/Products/{Id.Value}", model);
         }
         else
         {
-            ProductService.CreateProduct(model);
+            await Http.PostAsJsonAsync("api/Products", model);
         }
         Navigation.NavigateTo("/products");
     }

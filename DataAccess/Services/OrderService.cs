@@ -20,6 +20,9 @@ namespace DataAccess.Services
         public IEnumerable<OrderDto> GetOrders() =>
             _repository.GetAll().Select(ToDto);
 
+        public IEnumerable<OrderDto> GetOrdersForMember(int memberId) =>
+            _repository.GetByMemberId(memberId).Select(ToDto);
+
         public OrderDto? GetOrder(int id)
         {
             var order = _repository.GetById(id);
@@ -70,6 +73,9 @@ namespace DataAccess.Services
             _hub?.Clients.All.SendAsync("OrderDeleted", id);
             return true;
         }
+
+        public IEnumerable<SalesReportDto> GetSalesReport(DateTime startDate, DateTime endDate) =>
+            _repository.GetSalesReport(startDate, endDate);
 
         private static OrderDto ToDto(Order order) => new()
         {
