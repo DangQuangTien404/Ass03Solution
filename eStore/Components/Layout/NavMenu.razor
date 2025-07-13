@@ -1,0 +1,112 @@
+@inject eStore.AdminAuthService AuthService
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@rendermode InteractiveServer
+@implements IDisposable
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">eStore</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="weather">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            </NavLink>
+        </div>
+
+        @if (AuthService.IsLoggedIn && AuthService.IsAdmin)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="products">
+                    <span class="bi bi-archive" aria-hidden="true"></span> Products
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="categories">
+                    <span class="bi bi-folder" aria-hidden="true"></span> Categories
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="orders">
+                    <span class="bi bi-basket" aria-hidden="true"></span> Orders
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="sales-report">
+                    <span class="bi bi-graph-up" aria-hidden="true"></span> Sales Report
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="members">
+                    <span class="bi bi-people" aria-hidden="true"></span> Members
+                </NavLink>
+            </div>
+        }
+        else if (AuthService.IsLoggedIn)
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="profile">
+                    <span class="bi bi-person" aria-hidden="true"></span> Profile
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="orders">
+                    <span class="bi bi-basket" aria-hidden="true"></span> Orders
+                </NavLink>
+            </div>
+        }
+
+        @if (AuthService.IsLoggedIn)
+        {
+            <div class="nav-item px-3">
+                <a class="nav-link" href="#" @onclick="Logout">
+                    <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="login">
+                    <span class="bi bi-door-open" aria-hidden="true"></span> Login
+                </NavLink>
+            </div>
+        }
+    </nav>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AuthService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnChange -= StateHasChanged;
+    }
+
+    private void Logout()
+    {
+        AuthService.SignOut();
+        Navigation.NavigateTo("/");
+    }
+}
+

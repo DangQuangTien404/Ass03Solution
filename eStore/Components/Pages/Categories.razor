@@ -1,0 +1,194 @@
+@page "/categories"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
+@using Microsoft.AspNetCore.SignalR.Client
+@using BusinessObject.DTOs
+@implements IAsyncDisposable
+
+<PageTitle>Categories</PageTitle>
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <input class="form-control mb-2" placeholder="Search by name" @bind="searchTerm" @bind:event="oninput" />
+    <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Category</button>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var c in FilteredCategories)
+        {
+            <tr>
+                <td>@c.CategoryId</td>
+                <td>@c.CategoryName</td>
+                <td>@c.Description</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(c.CategoryId)">Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(c.CategoryId)">Delete</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@((editing ? "Edit Category" : "Create Category"))</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <EditForm Model="modalModel" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <InputText class="form-control" @bind-Value="modalModel.CategoryName" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputText class="form-control" @bind-Value="modalModel.Description" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private IEnumerable<CategoryDto>? categories;
+    private bool redirectToLogin;
+    private HubConnection? hubConnection;
+    private string searchTerm = string.Empty;
+
+    private bool showModal;
+    private bool editing;
+    private CategoryDto modalModel = new();
+
+    private IEnumerable<CategoryDto> FilteredCategories => string.IsNullOrWhiteSpace(searchTerm)
+        ? categories ?? Enumerable.Empty<CategoryDto>()
+        : categories?.Where(c => c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            ?? Enumerable.Empty<CategoryDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsLoggedIn || !AuthService.IsAdmin)
+        {
+            redirectToLogin = true;
+            return;
+        }
+
+        await LoadCategories();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/categoryHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<CategoryDto>("CategoryCreated", _ => InvokeAsync(LoadCategories));
+        hubConnection.On<CategoryDto>("CategoryUpdated", _ => InvokeAsync(LoadCategories));
+        hubConnection.On<int>("CategoryDeleted", _ => InvokeAsync(LoadCategories));
+
+        await hubConnection.StartAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private void ShowCreate()
+    {
+        editing = false;
+        modalModel = new CategoryDto();
+        showModal = true;
+    }
+
+    private async Task ShowEdit(int id)
+    {
+        var category = await Http.GetFromJsonAsync<CategoryDto>($"api/Categories/{id}");
+        if (category == null) return;
+        editing = true;
+        modalModel = category;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+        {
+            return;
+        }
+
+        if (editing)
+        {
+            await Http.PutAsJsonAsync($"api/Categories/{modalModel.CategoryId}", modalModel);
+        }
+        else
+        {
+            await Http.PostAsJsonAsync("api/Categories", modalModel);
+        }
+
+        showModal = false;
+        await LoadCategories();
+    }
+
+    private async Task Delete(int id)
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Delete this category?"))
+        {
+            return;
+        }
+        var response = await Http.DeleteAsync($"api/Categories/{id}");
+        if (!response.IsSuccessStatusCode)
+        {
+            await Js.InvokeVoidAsync("alert", "Category is in use and cannot be deleted.");
+            return;
+        }
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

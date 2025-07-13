@@ -1,0 +1,80 @@
+@page "/categories/create"
+@page "/categories/edit/{Id:int}"
+@rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject Microsoft.AspNetCore.Components.NavigationManager Navigation
+@inject eStore.AdminAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime Js
+@using BusinessObject.DTOs
+
+<PageTitle>Category</PageTitle>
+
+<EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="model.CategoryName" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <InputText class="form-control" @bind-Value="model.Description" />
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary ms-2" @onclick="Back">Back</button>
+</EditForm>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private CategoryDto model = new();
+    private bool redirectToLogin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsLoggedIn || !AuthService.IsAdmin)
+        {
+            redirectToLogin = true;
+            return;
+        }
+
+        if (Id.HasValue)
+        {
+            var category = await Http.GetFromJsonAsync<CategoryDto>($"api/Categories/{Id.Value}");
+            if (category != null)
+            {
+                model = category;
+            }
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && redirectToLogin)
+        {
+            redirectToLogin = false;
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!await Js.InvokeAsync<bool>("confirm", "Save changes?"))
+        {
+            return;
+        }
+        if (Id.HasValue)
+        {
+            await Http.PutAsJsonAsync($"api/Categories/{Id.Value}", model);
+        }
+        else
+        {
+            await Http.PostAsJsonAsync("api/Categories", model);
+        }
+        Navigation.NavigateTo("/categories");
+    }
+
+    private void Back()
+    {
+        Navigation.NavigateTo("/categories");
+    }
+}
