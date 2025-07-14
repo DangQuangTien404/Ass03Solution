@@ -29,14 +29,9 @@
     height: 1.5rem;
     margin-right: 0.5rem;
 }
-.bi {
-    display: inline-block;
-    font-size: 1.25rem;
-    position: relative;
-    top: -1px;
-}
-
 .nav-icon {
+    font-size: 1em;
+    vertical-align: -0.125em;
     margin-right: 0.5rem;
 }
 
