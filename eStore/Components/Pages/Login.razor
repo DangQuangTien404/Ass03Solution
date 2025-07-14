@@ -9,7 +9,9 @@
 @if (AuthService.IsLoggedIn)
 {
     <p class="text-success">@successMessage</p>
-    <button class="btn btn-secondary" @onclick="Logout">Logout</button>
+    <button class="btn btn-secondary" @onclick="Logout">
+        <span class="bi bi-box-arrow-right me-1"></span> Logout
+    </button>
 }
 else
 {
@@ -32,7 +34,9 @@ else
             <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
         </div>
 
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary">
+            <span class="bi bi-box-arrow-in-right me-1"></span> Login
+        </button>
     </EditForm>
 }
 
@@ -49,7 +53,7 @@ else
 
         if (AuthService.Login(email, password, admin))
         {
-            successMessage = "Login successful.";
+            successMessage = AuthService.IsAdmin ? "Welcome Admin" : "Welcome Member";
             error = null;
         }
         else
@@ -62,6 +66,7 @@ else
     private void Logout()
     {
         AuthService.SignOut();
+        successMessage = string.Empty;
     }
 
     public class LoginModel
