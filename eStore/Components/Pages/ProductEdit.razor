@@ -41,8 +41,12 @@
         <label class="form-label">Units In Stock</label>
         <InputNumber class="form-control" @bind-Value="model.UnitsInStock" />
     </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <button type="button" class="btn btn-secondary ms-2" @onclick="Back">Back</button>
+    <button type="submit" class="btn btn-primary">
+        <span class="bi bi-check me-1"></span> Save
+    </button>
+    <button type="button" class="btn btn-secondary ms-2" @onclick="Back">
+        <span class="bi bi-arrow-left me-1"></span> Back
+    </button>
 </EditForm>
 
 @code {

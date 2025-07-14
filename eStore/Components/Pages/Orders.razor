@@ -20,7 +20,9 @@ else
     @if (isAdmin)
     {
         <input class="form-control mb-2" placeholder="Search by member id" @bind="searchTerm" @bind:event="oninput" />
-        <button class="btn btn-primary mb-2" @onclick="ShowCreate">Create Order</button>
+        <button class="btn btn-primary mb-2" @onclick="ShowCreate">
+            <span class="bi bi-plus-circle me-1"></span> Create Order
+        </button>
     }
     <table class="table table-striped">
         <thead>
@@ -45,11 +47,17 @@ else
                 <td>@o.ShippedDate?.ToShortDateString()</td>
                 <td>@o.Freight</td>
                 <td>
-                    <button class="btn btn-sm btn-info me-1" @onclick="() => Details(o.OrderId)">Details</button>
+                    <button class="btn btn-sm btn-info me-1" @onclick="() => Details(o.OrderId)">
+                        <span class="bi bi-info-circle me-1"></span> Details
+                    </button>
                     @if (isAdmin)
                     {
-                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(o.OrderId)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(o.OrderId)">Delete</button>
+                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(o.OrderId)">
+                            <span class="bi bi-pencil-square me-1"></span> Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(o.OrderId)">
+                            <span class="bi bi-trash me-1"></span> Delete
+                        </button>
                     }
                 </td>
             </tr>
@@ -92,8 +100,12 @@ else
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="bi bi-check me-1"></span> Save
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                            <span class="bi bi-x me-1"></span> Cancel
+                        </button>
                     </div>
                 </EditForm>
             </div>
@@ -127,19 +139,16 @@ else
 
         await LoadData();
 
-        if (isAdmin)
-        {
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl(Navigation.ToAbsoluteUri("/orderHub"))
-                .WithAutomaticReconnect()
-                .Build();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/orderHub"))
+            .WithAutomaticReconnect()
+            .Build();
 
-            hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadData));
-            hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadData));
-            hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadData));
+        hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadData));
+        hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadData));
+        hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadData));
 
-            await hubConnection.StartAsync();
-        }
+        await hubConnection.StartAsync();
     }
 
     protected override void OnAfterRender(bool firstRender)

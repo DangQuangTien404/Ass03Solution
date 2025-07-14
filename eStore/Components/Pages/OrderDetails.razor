@@ -19,10 +19,14 @@ else if (details == null)
 }
 else
 {
-    <button class="btn btn-secondary mb-2" @onclick="Back">Back</button>
+    <button class="btn btn-secondary mb-2" @onclick="Back">
+        <span class="bi bi-arrow-left me-1"></span> Back
+    </button>
     @if (isAdmin && !showModal)
     {
-        <button class="btn btn-primary mb-2 ms-2" @onclick="ShowCreate">Add Item</button>
+        <button class="btn btn-primary mb-2 ms-2" @onclick="ShowCreate">
+            <span class="bi bi-plus-circle me-1"></span> Add Item
+        </button>
     }
     <table class="table table-striped">
         <thead>
@@ -47,8 +51,12 @@ else
                 <td>
                     @if (isAdmin)
                     {
-                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(d)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(d.ProductId)">Delete</button>
+                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => ShowEdit(d)">
+                            <span class="bi bi-pencil-square me-1"></span> Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => Delete(d.ProductId)">
+                            <span class="bi bi-trash me-1"></span> Delete
+                        </button>
                     }
                 </td>
             </tr>
@@ -122,8 +130,12 @@ else
                         }
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="bi bi-check me-1"></span> Save
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                            <span class="bi bi-x me-1"></span> Cancel
+                        </button>
                     </div>
                 </EditForm>
             </div>
