@@ -24,6 +24,12 @@
     font-size: 1.1rem;
 }
 
+.brand-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0.5rem;
+}
+
 .bi {
     display: inline-block;
     position: relative;
