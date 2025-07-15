@@ -1,5 +1,5 @@
 using BusinessObject.DTOs;
-using DataAccess.Services;
+using DataAccess.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eStore.Controllers;

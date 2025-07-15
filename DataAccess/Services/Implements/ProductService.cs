@@ -1,10 +1,11 @@
 using BusinessObject;
 using BusinessObject.DTOs;
-using DataAccess.Repositories;
 using DataAccess.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using DataAccess.Repositories.Interface;
+using DataAccess.Services.Interface;
 
-namespace DataAccess.Services
+namespace DataAccess.Services.Implements
 {
     public class ProductService : IProductService
     {

@@ -1,7 +1,8 @@
 using BusinessObject;
+using DataAccess.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
-namespace DataAccess.Repositories
+namespace DataAccess.Repositories.Implements
 {
     public class MemberRepository : IMemberRepository
     {

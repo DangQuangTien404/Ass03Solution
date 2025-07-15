@@ -1,6 +1,6 @@
 using BusinessObject.DTOs;
 
-namespace DataAccess.Services
+namespace DataAccess.Services.Interface
 {
     public interface IProductService
     {

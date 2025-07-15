@@ -3,9 +3,11 @@ using eStore;
 using eStore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Components;
-using DataAccess.Repositories;
-using DataAccess.Services;
 using DataAccess.Hubs;
+using DataAccess.Repositories.Interface;
+using DataAccess.Repositories.Implements;
+using DataAccess.Services.Interface;
+using DataAccess.Services.Implements;
 
 var builder = WebApplication.CreateBuilder(args);
 

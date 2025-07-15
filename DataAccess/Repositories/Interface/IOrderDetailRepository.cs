@@ -1,6 +1,6 @@
 using BusinessObject;
 
-namespace DataAccess.Repositories
+namespace DataAccess.Repositories.Interface
 {
     public interface IOrderDetailRepository
     {

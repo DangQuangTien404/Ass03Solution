@@ -1,4 +1,4 @@
-using DataAccess.Repositories;
+using DataAccess.Repositories.Interface;
 
 namespace eStore
 {
