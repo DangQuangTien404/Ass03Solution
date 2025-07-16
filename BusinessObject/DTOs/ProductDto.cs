@@ -19,6 +19,7 @@ namespace BusinessObject.DTOs
         [Required]
         public decimal? UnitPrice { get; set; }
 
+        [Required]
         [Range(0, int.MaxValue)]
         public int UnitsInStock { get; set; }
     }

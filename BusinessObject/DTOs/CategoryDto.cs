@@ -9,6 +9,7 @@ namespace BusinessObject.DTOs
         [Required]
         public string CategoryName { get; set; } = string.Empty;
 
+        [Required]
         public string? Description { get; set; }
     }
 }

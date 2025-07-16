@@ -4,14 +4,17 @@ namespace BusinessObject.DTOs
 {
     public class OrderDetailDto
     {
+        [Required]
         public int OrderId { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Product is required")]
         public int ProductId { get; set; }
 
+        [Required]
         public string ProductName { get; set; } = string.Empty;
 
+        [Range(0.01, double.MaxValue)]
         public decimal UnitPrice { get; set; }
 
         [Range(1, int.MaxValue)]
