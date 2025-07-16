@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BusinessObject.Validators;
 
 namespace BusinessObject.DTOs
 {
@@ -6,7 +7,7 @@ namespace BusinessObject.DTOs
     {
         public int MemberId { get; set; }
 
-        [Required, EmailAddress]
+        [Required, GmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required]
