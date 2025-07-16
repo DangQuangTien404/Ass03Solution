@@ -5,6 +5,7 @@ namespace DataAccess.Services.Interface
     public interface IMemberService
     {
         IEnumerable<MemberDto> GetMembers();
+        IEnumerable<MemberDto> GetMembers(int page, int pageSize);
         MemberDto? GetMember(int id);
         void CreateMember(MemberDto dto);
         void UpdateMember(MemberDto dto);

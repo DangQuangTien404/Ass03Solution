@@ -5,6 +5,7 @@ namespace DataAccess.Repositories.Interface
     public interface ICategoryRepository
     {
         IEnumerable<Category> GetAll();
+        IEnumerable<Category> GetPaged(int page, int pageSize);
         Category? GetById(int id);
         void Add(Category category);
         void Update(Category category);

@@ -34,7 +34,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var p in FilteredProducts)
+        @foreach (var p in DisplayedProducts)
         {
             <tr>
                 <td>@p.ProductId</td>
@@ -54,6 +54,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -124,7 +129,13 @@ else
     private bool editing;
     private ProductDto modalModel = new();
 
-    private IEnumerable<ProductDto> FilteredProducts => products?
+    private int currentPage = 1;
+    private readonly int pageSize = 10;
+
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => products != null && products.Count() == pageSize;
+
+    private IEnumerable<ProductDto> DisplayedProducts => products?
         .Where(p => (string.IsNullOrWhiteSpace(searchName) || p.ProductName.Contains(searchName, StringComparison.OrdinalIgnoreCase))
                  && (!searchPrice.HasValue || p.UnitPrice == searchPrice))
         ?? Enumerable.Empty<ProductDto>();
@@ -162,8 +173,9 @@ else
 
     private async Task LoadData()
     {
-        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>("api/Products");
-        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
+        var url = $"api/Products?page={currentPage}&pageSize={pageSize}";
+        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>(url);
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories?page=1&pageSize=1000");
         StateHasChanged();
     }
 
@@ -216,6 +228,24 @@ else
         }
         await Http.DeleteAsync($"api/Products/{id}");
         await LoadData();
+    }
+
+    private void NextPage()
+    {
+        if (CanNext)
+        {
+            currentPage++;
+            _ = LoadData();
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (CanPrev)
+        {
+            currentPage--;
+            _ = LoadData();
+        }
     }
 
     public async ValueTask DisposeAsync()

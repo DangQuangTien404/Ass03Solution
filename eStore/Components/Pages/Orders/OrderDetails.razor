@@ -63,6 +63,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between mb-2">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
     <div class="mt-2 fw-bold">Order Total: @details.Sum(x => x.Total)</div>
 }
 
@@ -154,6 +159,12 @@ else
     private OrderDetailDto modalModel = new();
     private bool isAdmin => AuthService.IsAdmin;
 
+    private int currentPage = 1;
+    private readonly int pageSize = 10;
+
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => details != null && details.Count() == pageSize;
+
     private bool PreviewReady =>
         modalModel.ProductId > 0 &&
         modalModel.Quantity > 0 &&
@@ -192,8 +203,8 @@ else
 
     private async Task LoadData()
     {
-        details = await Http.GetFromJsonAsync<IEnumerable<OrderDetailDto>>($"api/OrderDetails/{OrderId}");
-        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>("api/Products");
+        details = await Http.GetFromJsonAsync<IEnumerable<OrderDetailDto>>($"api/OrderDetails/{OrderId}?page={currentPage}&pageSize={pageSize}");
+        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>("api/Products?page=1&pageSize=1000");
     }
 
     private void ShowCreate()
@@ -264,6 +275,24 @@ else
         {
             await LoadData();
             StateHasChanged();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CanNext)
+        {
+            currentPage++;
+            _ = LoadData();
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (CanPrev)
+        {
+            currentPage--;
+            _ = LoadData();
         }
     }
 

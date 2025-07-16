@@ -16,7 +16,8 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CategoryDto>> Get() => Ok(_service.GetCategories());
+    public ActionResult<IEnumerable<CategoryDto>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10) =>
+        Ok(_service.GetCategories(page, pageSize));
 
     [HttpGet("{id}")]
     public ActionResult<CategoryDto> Get(int id)

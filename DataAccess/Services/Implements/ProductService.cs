@@ -18,7 +18,10 @@ namespace DataAccess.Services.Implements
         }
 
         public IEnumerable<ProductDto> GetProducts() =>
-            _repository.GetAll().Select(p => ToDto(p));
+            _repository.GetAll().Select(ToDto);
+
+        public IEnumerable<ProductDto> GetProducts(int page, int pageSize) =>
+            _repository.GetPaged(page, pageSize).Select(ToDto);
 
         public ProductDto? GetProduct(int id)
         {

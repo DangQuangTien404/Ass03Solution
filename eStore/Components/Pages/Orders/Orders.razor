@@ -37,7 +37,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var o in PagedOrders)
+        @foreach (var o in DisplayedOrders)
         {
             <tr>
                 <td>@o.OrderId</td>
@@ -66,7 +66,7 @@ else
     </table>
     <div class="d-flex justify-content-between">
         <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
-        <span>Page @currentPage of @TotalPages</span>
+        <span>Page @currentPage</span>
         <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
     </div>
 }
@@ -140,26 +140,23 @@ else
     private bool editing;
     private OrderDto modalModel = new();
 
-    private IEnumerable<OrderDto> FilteredOrders =>
-        isAdmin && !string.IsNullOrWhiteSpace(searchTerm)
-            ? orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<OrderDto>()
-            : orders ?? Enumerable.Empty<OrderDto>();
 
     private int currentPage = 1;
     private readonly int pageSize = 10;
 
-    private int TotalPages => (int)Math.Ceiling((double)FilteredOrders.Count() / pageSize);
     private bool CanPrev => currentPage > 1;
-    private bool CanNext => currentPage < TotalPages;
+    private bool CanNext => orders != null && orders.Count() == pageSize;
 
-    private IEnumerable<OrderDto> PagedOrders =>
-        FilteredOrders.Skip((currentPage - 1) * pageSize).Take(pageSize);
+    private IEnumerable<OrderDto> DisplayedOrders => string.IsNullOrWhiteSpace(searchTerm)
+        ? orders ?? Enumerable.Empty<OrderDto>()
+        : orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<OrderDto>();
 
     private void NextPage()
     {
         if (CanNext)
         {
             currentPage++;
+            _ = LoadOrders();
         }
     }
 
@@ -168,6 +165,7 @@ else
         if (CanPrev)
         {
             currentPage--;
+            _ = LoadOrders();
         }
     }
 
@@ -218,15 +216,16 @@ else
 
     private async Task LoadOrders()
     {
-        orders = isAdmin
-            ? await Http.GetFromJsonAsync<IEnumerable<OrderDto>>("api/Orders")
-            : await Http.GetFromJsonAsync<IEnumerable<OrderDto>>($"api/Orders/member/{AuthService.MemberId ?? 0}");
+        var url = isAdmin
+            ? $"api/Orders?page={currentPage}&pageSize={pageSize}"
+            : $"api/Orders/member/{AuthService.MemberId ?? 0}?page={currentPage}&pageSize={pageSize}";
+        orders = await Http.GetFromJsonAsync<IEnumerable<OrderDto>>(url);
         StateHasChanged();
     }
 
     private async Task LoadMembers()
     {
-        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>("api/Members");
+        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>("api/Members?page=1&pageSize=1000");
         StateHasChanged();
     }
 

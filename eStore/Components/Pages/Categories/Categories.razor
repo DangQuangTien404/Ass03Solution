@@ -31,7 +31,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var c in FilteredCategories)
+        @foreach (var c in DisplayedCategories)
         {
             <tr>
                 <td>@c.CategoryId</td>
@@ -49,6 +49,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -96,7 +101,13 @@ else
     private bool editing;
     private CategoryDto modalModel = new();
 
-    private IEnumerable<CategoryDto> FilteredCategories => string.IsNullOrWhiteSpace(searchTerm)
+    private int currentPage = 1;
+    private readonly int pageSize = 10;
+
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => categories != null && categories.Count() == pageSize;
+
+    private IEnumerable<CategoryDto> DisplayedCategories => string.IsNullOrWhiteSpace(searchTerm)
         ? categories ?? Enumerable.Empty<CategoryDto>()
         : categories?.Where(c => c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
             ?? Enumerable.Empty<CategoryDto>();
@@ -188,9 +199,28 @@ else
         await LoadCategories();
     }
 
+    private void NextPage()
+    {
+        if (CanNext)
+        {
+            currentPage++;
+            _ = LoadCategories();
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (CanPrev)
+        {
+            currentPage--;
+            _ = LoadCategories();
+        }
+    }
+
     private async Task LoadCategories()
     {
-        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
+        var url = $"api/Categories?page={currentPage}&pageSize={pageSize}";
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>(url);
         StateHasChanged();
     }
 

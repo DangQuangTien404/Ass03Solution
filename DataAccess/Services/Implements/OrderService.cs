@@ -21,8 +21,14 @@ namespace DataAccess.Services.Implements
         public IEnumerable<OrderDto> GetOrders() =>
             _repository.GetAll().Select(ToDto);
 
+        public IEnumerable<OrderDto> GetOrders(int page, int pageSize) =>
+            _repository.GetPaged(page, pageSize).Select(ToDto);
+
         public IEnumerable<OrderDto> GetOrdersForMember(int memberId) =>
             _repository.GetByMemberId(memberId).Select(ToDto);
+
+        public IEnumerable<OrderDto> GetOrdersForMember(int memberId, int page, int pageSize) =>
+            _repository.GetByMemberIdPaged(memberId, page, pageSize).Select(ToDto);
 
         public OrderDto? GetOrder(int id)
         {

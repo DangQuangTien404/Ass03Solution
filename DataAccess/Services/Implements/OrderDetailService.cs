@@ -16,6 +16,9 @@ namespace DataAccess.Services.Implements
         public IEnumerable<OrderDetailDto> GetDetails(int orderId) =>
             _repository.GetByOrder(orderId).Select(ToDto);
 
+        public IEnumerable<OrderDetailDto> GetDetails(int orderId, int page, int pageSize) =>
+            _repository.GetByOrderPaged(orderId, page, pageSize).Select(ToDto);
+
         public bool CreateDetail(OrderDetailDto dto)
         {
             if (!_repository.OrderExists(dto.OrderId) || !_repository.ProductExists(dto.ProductId))

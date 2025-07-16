@@ -33,7 +33,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var m in FilteredMembers)
+        @foreach (var m in DisplayedMembers)
         {
             <tr>
                 <td>@m.MemberId</td>
@@ -53,6 +53,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -112,7 +117,13 @@ else
     private bool editing;
     private MemberDto modalModel = new();
 
-    private IEnumerable<MemberDto> FilteredMembers => string.IsNullOrWhiteSpace(searchTerm)
+    private int currentPage = 1;
+    private readonly int pageSize = 10;
+
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => members != null && members.Count() == pageSize;
+
+    private IEnumerable<MemberDto> DisplayedMembers => string.IsNullOrWhiteSpace(searchTerm)
         ? members ?? Enumerable.Empty<MemberDto>()
         : members?.Where(m => m.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<MemberDto>();
 
@@ -149,7 +160,8 @@ else
 
     private async Task LoadData()
     {
-        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>("api/Members");
+        var url = $"api/Members?page={currentPage}&pageSize={pageSize}";
+        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>(url);
         StateHasChanged();
     }
 
@@ -196,6 +208,24 @@ else
             return;
         }
         await LoadData();
+    }
+
+    private void NextPage()
+    {
+        if (CanNext)
+        {
+            currentPage++;
+            _ = LoadData();
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (CanPrev)
+        {
+            currentPage--;
+            _ = LoadData();
+        }
     }
 
     public async ValueTask DisposeAsync()

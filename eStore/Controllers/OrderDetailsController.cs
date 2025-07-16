@@ -16,7 +16,8 @@ public class OrderDetailsController : ControllerBase
     }
 
     [HttpGet("{orderId}")]
-    public ActionResult<IEnumerable<OrderDetailDto>> Get(int orderId) => Ok(_service.GetDetails(orderId));
+    public ActionResult<IEnumerable<OrderDetailDto>> Get(int orderId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10) =>
+        Ok(_service.GetDetails(orderId, page, pageSize));
 
     [HttpPost]
     public IActionResult Post(OrderDetailDto dto)

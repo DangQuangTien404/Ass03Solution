@@ -20,6 +20,9 @@ namespace DataAccess.Services.Implements
         public IEnumerable<CategoryDto> GetCategories() =>
             _repository.GetAll().Select(ToDto);
 
+        public IEnumerable<CategoryDto> GetCategories(int page, int pageSize) =>
+            _repository.GetPaged(page, pageSize).Select(ToDto);
+
         public CategoryDto? GetCategory(int id)
         {
             var category = _repository.GetById(id);

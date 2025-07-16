@@ -16,7 +16,8 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<OrderDto>> Get() => Ok(_service.GetOrders());
+    public ActionResult<IEnumerable<OrderDto>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10) =>
+        Ok(_service.GetOrders(page, pageSize));
 
     [HttpGet("{id}")]
     public ActionResult<OrderDto> Get(int id)
@@ -26,7 +27,8 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("member/{memberId}")]
-    public ActionResult<IEnumerable<OrderDto>> GetByMember(int memberId) => Ok(_service.GetOrdersForMember(memberId));
+    public ActionResult<IEnumerable<OrderDto>> GetByMember(int memberId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10) =>
+        Ok(_service.GetOrdersForMember(memberId, page, pageSize));
 
     [HttpPost]
     public IActionResult Post(OrderDto dto)

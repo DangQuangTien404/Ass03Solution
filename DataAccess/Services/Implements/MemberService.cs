@@ -20,6 +20,9 @@ namespace DataAccess.Services.Implements
 
         public IEnumerable<MemberDto> GetMembers() => _repository.GetAll().Select(ToDto);
 
+        public IEnumerable<MemberDto> GetMembers(int page, int pageSize) =>
+            _repository.GetPaged(page, pageSize).Select(ToDto);
+
         public MemberDto? GetMember(int id)
         {
             var member = _repository.GetById(id);
