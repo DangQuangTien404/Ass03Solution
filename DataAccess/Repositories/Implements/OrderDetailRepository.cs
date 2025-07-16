@@ -1,4 +1,4 @@
-using BusinessObject;
+using BusinessObject.Entities;
 using DataAccess.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 

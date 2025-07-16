@@ -1,4 +1,4 @@
-using BusinessObject;
+using BusinessObject.Entities;
 
 namespace DataAccess.Repositories.Interface
 {

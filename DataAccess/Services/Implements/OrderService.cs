@@ -1,4 +1,4 @@
-using BusinessObject;
+using BusinessObject.Entities;
 using BusinessObject.DTOs;
 using DataAccess.Hubs;
 using Microsoft.AspNetCore.SignalR;

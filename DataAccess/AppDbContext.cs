@@ -1,4 +1,4 @@
-﻿using BusinessObject;
+﻿using BusinessObject.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Reflection.Emit;

@@ -1,4 +1,4 @@
-using BusinessObject;
+using BusinessObject.Entities;
 using BusinessObject.DTOs;
 using DataAccess.Hubs;
 using Microsoft.AspNetCore.SignalR;
@@ -72,7 +72,7 @@ namespace DataAccess.Services.Implements
             ProductName = product.ProductName,
             Weight = product.Weight,
             UnitPrice = product.UnitPrice,
-            UnitsInStock = product.UnitsInStock
+            UnitsInStock = product.UnitsInStock ?? 0
         };
     }
 }

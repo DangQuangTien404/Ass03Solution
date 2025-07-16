@@ -28,7 +28,7 @@ namespace DataAccess.Services.Implements
 
         public void CreateCategory(CategoryDto dto)
         {
-            var category = new BusinessObject.Category
+            var category = new BusinessObject.Entities.Category
             {
                 CategoryName = dto.CategoryName,
                 Description = dto.Description
@@ -61,7 +61,7 @@ namespace DataAccess.Services.Implements
             return true;
         }
 
-        private static CategoryDto ToDto(BusinessObject.Category c) => new()
+        private static CategoryDto ToDto(BusinessObject.Entities.Category c) => new()
         {
             CategoryId = c.CategoryId,
             CategoryName = c.CategoryName,
