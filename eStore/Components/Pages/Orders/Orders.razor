@@ -7,7 +7,6 @@
 @inject Microsoft.JSInterop.IJSRuntime Js
 @using Microsoft.AspNetCore.SignalR.Client
 @using BusinessObject.DTOs
-@using System.Linq
 @implements IAsyncDisposable
 
 <PageTitle>Orders</PageTitle>
@@ -38,7 +37,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var o in FilteredOrders)
+        @foreach (var o in PagedOrders)
         {
             <tr>
                 <td>@o.OrderId</td>
@@ -65,6 +64,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage of @TotalPages</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -80,17 +84,8 @@ else
                     <DataAnnotationsValidator />
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Member</label>
-                            <InputSelect class="form-control" @bind-Value="modalModel.MemberId">
-                                <option value="">Select member</option>
-                                @if (members != null)
-                                {
-                                    foreach (var m in members.OrderBy(m => m.MemberId))
-                                    {
-                                        <option value="@m.MemberId">@m.MemberId</option>
-                                    }
-                                }
-                            </InputSelect>
+                            <label class="form-label">Member Id</label>
+                            <InputNumber class="form-control" @bind-Value="modalModel.MemberId" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Order Date</label>
@@ -128,18 +123,42 @@ else
     private string searchTerm = string.Empty;
     private bool redirectToLogin;
     private HubConnection? hubConnection;
-    private HubConnection? memberHubConnection;
     private bool isAdmin => AuthService.IsAdmin;
 
     private bool showModal;
     private bool editing;
     private OrderDto modalModel = new();
-    private IEnumerable<MemberDto>? members;
 
     private IEnumerable<OrderDto> FilteredOrders =>
         isAdmin && !string.IsNullOrWhiteSpace(searchTerm)
             ? orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<OrderDto>()
             : orders ?? Enumerable.Empty<OrderDto>();
+
+    private int currentPage = 1;
+    private readonly int pageSize = 10;
+
+    private int TotalPages => (int)Math.Ceiling((double)FilteredOrders.Count() / pageSize);
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => currentPage < TotalPages;
+
+    private IEnumerable<OrderDto> PagedOrders =>
+        FilteredOrders.Skip((currentPage - 1) * pageSize).Take(pageSize);
+
+    private void NextPage()
+    {
+        if (CanNext)
+        {
+            currentPage++;
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (CanPrev)
+        {
+            currentPage--;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,33 +168,16 @@ else
             return;
         }
 
-        await LoadOrders();
-        if (isAdmin)
-        {
-            await LoadMembers();
-        }
+        await LoadData();
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/orderHub"))
             .WithAutomaticReconnect()
             .Build();
 
-        hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadOrders));
-        hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadOrders));
-        hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadOrders));
-
-        if (isAdmin)
-        {
-            memberHubConnection = new HubConnectionBuilder()
-                .WithUrl(Navigation.ToAbsoluteUri("/memberHub"))
-                .WithAutomaticReconnect()
-                .Build();
-
-            memberHubConnection.On<MemberDto>("MemberCreated", _ => InvokeAsync(LoadMembers));
-            memberHubConnection.On<MemberDto>("MemberUpdated", _ => InvokeAsync(LoadMembers));
-            memberHubConnection.On<int>("MemberDeleted", _ => InvokeAsync(LoadMembers));
-            await memberHubConnection.StartAsync();
-        }
+        hubConnection.On<OrderDto>("OrderCreated", _ => InvokeAsync(LoadData));
+        hubConnection.On<OrderDto>("OrderUpdated", _ => InvokeAsync(LoadData));
+        hubConnection.On<int>("OrderDeleted", _ => InvokeAsync(LoadData));
 
         await hubConnection.StartAsync();
     }
@@ -189,17 +191,11 @@ else
         }
     }
 
-    private async Task LoadOrders()
+    private async Task LoadData()
     {
         orders = isAdmin
             ? await Http.GetFromJsonAsync<IEnumerable<OrderDto>>("api/Orders")
             : await Http.GetFromJsonAsync<IEnumerable<OrderDto>>($"api/Orders/member/{AuthService.MemberId ?? 0}");
-        StateHasChanged();
-    }
-
-    private async Task LoadMembers()
-    {
-        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>("api/Members");
         StateHasChanged();
     }
 
@@ -250,7 +246,7 @@ else
         }
 
         showModal = false;
-        await LoadOrders();
+        await LoadData();
     }
 
     private async Task Delete(int id)
@@ -264,7 +260,7 @@ else
             await Js.InvokeVoidAsync("alert", "Order has details and cannot be deleted.");
             return;
         }
-        await LoadOrders();
+        await LoadData();
     }
 
     public async ValueTask DisposeAsync()
@@ -272,10 +268,6 @@ else
         if (hubConnection != null)
         {
             await hubConnection.DisposeAsync();
-        }
-        if (memberHubConnection != null)
-        {
-            await memberHubConnection.DisposeAsync();
         }
     }
 }
