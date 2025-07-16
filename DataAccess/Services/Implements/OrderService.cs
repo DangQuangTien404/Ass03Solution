@@ -1,7 +1,5 @@
-using BusinessObject;
 using BusinessObject.DTOs;
-using DataAccess.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using DataAccess.Services.Interface;
 
@@ -10,19 +8,18 @@ namespace DataAccess.Services.Implements
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _repository;
-        private readonly IHubContext<OrderHub>? _hub;
+        private const int PageSize = 5;
 
-        public OrderService(IOrderRepository repository, IHubContext<OrderHub>? hub = null)
+        public OrderService(IOrderRepository repository)
         {
             _repository = repository;
-            _hub = hub;
         }
 
-        public IEnumerable<OrderDto> GetOrders() =>
-            _repository.GetAll().Select(ToDto);
+        public IEnumerable<OrderDto> GetOrders(int page) =>
+            _repository.GetPaged(page, PageSize).Select(ToDto);
 
-        public IEnumerable<OrderDto> GetOrdersForMember(int memberId) =>
-            _repository.GetByMemberId(memberId).Select(ToDto);
+        public IEnumerable<OrderDto> GetOrdersForMember(int memberId, int page) =>
+            _repository.GetByMemberIdPaged(memberId, page, PageSize).Select(ToDto);
 
         public OrderDto? GetOrder(int id)
         {
@@ -44,7 +41,6 @@ namespace DataAccess.Services.Implements
             _repository.Add(order);
             _repository.SaveChanges();
             dto.OrderId = order.OrderId;
-            _hub?.Clients.All.SendAsync("OrderCreated", ToDto(order));
             return true;
         }
 
@@ -60,7 +56,6 @@ namespace DataAccess.Services.Implements
             order.Freight = dto.Freight;
             _repository.Update(order);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("OrderUpdated", ToDto(order));
             return true;
         }
 
@@ -71,7 +66,6 @@ namespace DataAccess.Services.Implements
             if (order == null) return false;
             _repository.Delete(order);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("OrderDeleted", id);
             return true;
         }
 

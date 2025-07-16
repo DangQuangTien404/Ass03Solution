@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace DataAccess.Hubs
+namespace eStore.Hubs
 {
     public class ProductHub : Hub
     {

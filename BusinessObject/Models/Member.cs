@@ -1,20 +1,30 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-namespace BusinessObject
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BusinessObject.Models
 {
+    [Table("Member")]
     public class Member
     {
+        [Key]
         public int MemberId { get; set; }
-        public string Email { get; set; } = string.Empty;
-        public string CompanyName { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string Country { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
 
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        [Required, StringLength(100)]
+        public string Email { get; set; } = null!;
+
+        [Required, StringLength(40)]
+        public string CompanyName { get; set; } = null!;
+
+        [Required, StringLength(15)]
+        public string City { get; set; } = null!;
+
+        [Required, StringLength(15)]
+        public string Country { get; set; } = null!;
+
+        [Required, StringLength(30)]
+        public string Password { get; set; } = null!;
+
+        public virtual ICollection<Order> Orders { get; set; } = new HashSet<Order>();
     }
 }
-

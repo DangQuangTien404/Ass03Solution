@@ -1,5 +1,7 @@
 using BusinessObject.DTOs;
 using DataAccess.Services.Interface;
+using eStore.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eStore.Controllers;
@@ -9,14 +11,17 @@ namespace eStore.Controllers;
 public class MembersController : ControllerBase
 {
     private readonly IMemberService _service;
+    private readonly IHubContext<MemberHub>? _hub;
 
-    public MembersController(IMemberService service)
+    public MembersController(IMemberService service, IHubContext<MemberHub>? hub = null)
     {
         _service = service;
+        _hub = hub;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<MemberDto>> Get() => Ok(_service.GetMembers());
+    public ActionResult<IEnumerable<MemberDto>> GetPaged([FromQuery] int page = 1) =>
+        Ok(_service.GetMembers(page));
 
     [HttpGet("{id}")]
     public ActionResult<MemberDto> Get(int id)
@@ -29,6 +34,7 @@ public class MembersController : ControllerBase
     public IActionResult Post(MemberDto dto)
     {
         _service.CreateMember(dto);
+        _hub?.Clients.All.SendAsync("MemberCreated", dto);
         return CreatedAtAction(nameof(Get), new { id = dto.MemberId }, dto);
     }
 
@@ -36,13 +42,20 @@ public class MembersController : ControllerBase
     public IActionResult Put(int id, MemberDto dto)
     {
         if (id != dto.MemberId) return BadRequest();
+        var existing = _service.GetMember(id);
+        if (existing == null) return NotFound();
         _service.UpdateMember(dto);
+        _hub?.Clients.All.SendAsync("MemberUpdated", dto);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        return _service.DeleteMember(id) ? NoContent() : BadRequest();
+        if (!_service.DeleteMember(id)) return BadRequest();
+        _hub?.Clients.All.SendAsync("MemberDeleted", id);
+        return NoContent();
     }
+
 }
+

@@ -19,3 +19,4 @@ public class SalesReportController : ControllerBase
     public ActionResult<IEnumerable<SalesReportDto>> Get([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         => Ok(_service.GetSalesReport(startDate, endDate));
 }
+
