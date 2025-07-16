@@ -49,6 +49,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -95,6 +100,10 @@ else
     private bool showModal;
     private bool editing;
     private CategoryDto modalModel = new();
+
+    private int currentPage = 1;
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => categories?.Count() == 5;
 
     private IEnumerable<CategoryDto> FilteredCategories => string.IsNullOrWhiteSpace(searchTerm)
         ? categories ?? Enumerable.Empty<CategoryDto>()
@@ -190,8 +199,22 @@ else
 
     private async Task LoadCategories()
     {
-        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>($"api/Categories?page={currentPage}");
         StateHasChanged();
+    }
+
+    private async Task PrevPage()
+    {
+        if (currentPage <= 1) return;
+        currentPage--;
+        await LoadCategories();
+    }
+
+    private async Task NextPage()
+    {
+        if (!CanNext) return;
+        currentPage++;
+        await LoadCategories();
     }
 
     public async ValueTask DisposeAsync()

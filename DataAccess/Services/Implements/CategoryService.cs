@@ -1,6 +1,5 @@
 using BusinessObject.DTOs;
-using DataAccess.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using DataAccess.Services.Interface;
 
@@ -9,16 +8,15 @@ namespace DataAccess.Services.Implements
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _repository;
-        private readonly IHubContext<CategoryHub>? _hub;
+        private const int PageSize = 5;
 
-        public CategoryService(ICategoryRepository repository, IHubContext<CategoryHub>? hub = null)
+        public CategoryService(ICategoryRepository repository)
         {
             _repository = repository;
-            _hub = hub;
         }
 
-        public IEnumerable<CategoryDto> GetCategories() =>
-            _repository.GetAll().Select(ToDto);
+        public IEnumerable<CategoryDto> GetCategories(int page) =>
+            _repository.GetPaged(page, PageSize).Select(ToDto);
 
         public CategoryDto? GetCategory(int id)
         {
@@ -28,7 +26,7 @@ namespace DataAccess.Services.Implements
 
         public void CreateCategory(CategoryDto dto)
         {
-            var category = new BusinessObject.Category
+            var category = new Category
             {
                 CategoryName = dto.CategoryName,
                 Description = dto.Description
@@ -36,7 +34,6 @@ namespace DataAccess.Services.Implements
             _repository.Add(category);
             _repository.SaveChanges();
             dto.CategoryId = category.CategoryId;
-            _hub?.Clients.All.SendAsync("CategoryCreated", ToDto(category));
         }
 
         public void UpdateCategory(CategoryDto dto)
@@ -47,7 +44,6 @@ namespace DataAccess.Services.Implements
             category.Description = dto.Description;
             _repository.Update(category);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("CategoryUpdated", ToDto(category));
         }
 
         public bool DeleteCategory(int id)
@@ -57,11 +53,10 @@ namespace DataAccess.Services.Implements
             if (category == null) return false;
             _repository.Delete(category);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("CategoryDeleted", id);
             return true;
         }
 
-        private static CategoryDto ToDto(BusinessObject.Category c) => new()
+        private static CategoryDto ToDto(Category c) => new()
         {
             CategoryId = c.CategoryId,
             CategoryName = c.CategoryName,

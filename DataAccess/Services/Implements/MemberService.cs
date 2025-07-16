@@ -1,7 +1,5 @@
-using BusinessObject;
 using BusinessObject.DTOs;
-using DataAccess.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using DataAccess.Services.Interface;
 
@@ -10,15 +8,15 @@ namespace DataAccess.Services.Implements
     public class MemberService : IMemberService
     {
         private readonly IMemberRepository _repository;
-        private readonly IHubContext<MemberHub>? _hub;
+        private const int PageSize = 5;
 
-        public MemberService(IMemberRepository repository, IHubContext<MemberHub>? hub = null)
+        public MemberService(IMemberRepository repository)
         {
             _repository = repository;
-            _hub = hub;
         }
 
-        public IEnumerable<MemberDto> GetMembers() => _repository.GetAll().Select(ToDto);
+        public IEnumerable<MemberDto> GetMembers(int page) =>
+            _repository.GetPaged(page, PageSize).Select(ToDto);
 
         public MemberDto? GetMember(int id)
         {
@@ -39,7 +37,6 @@ namespace DataAccess.Services.Implements
             _repository.Add(member);
             _repository.SaveChanges();
             dto.MemberId = member.MemberId;
-            _hub?.Clients.All.SendAsync("MemberCreated", ToDto(member));
         }
 
         public void UpdateMember(MemberDto dto)
@@ -53,7 +50,6 @@ namespace DataAccess.Services.Implements
             member.Password = dto.Password;
             _repository.Update(member);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("MemberUpdated", ToDto(member));
         }
 
         public bool DeleteMember(int id)
@@ -63,7 +59,6 @@ namespace DataAccess.Services.Implements
             if (member == null) return false;
             _repository.Delete(member);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("MemberDeleted", id);
             return true;
         }
 

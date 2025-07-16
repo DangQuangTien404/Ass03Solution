@@ -3,7 +3,7 @@ using eStore;
 using eStore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Components;
-using DataAccess.Hubs;
+using eStore.Hubs;
 using DataAccess.Repositories.Interface;
 using DataAccess.Repositories.Implements;
 using DataAccess.Services.Interface;
@@ -27,14 +27,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.Configure<AdminAccount>(builder.Configuration.GetSection("AdminAccount"));
 builder.Services.AddScoped<AdminAuthService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
-builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddSignalR();
 

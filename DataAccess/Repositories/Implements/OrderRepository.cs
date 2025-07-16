@@ -1,4 +1,4 @@
-using BusinessObject;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +15,12 @@ namespace DataAccess.Repositories.Implements
 
         public IEnumerable<Order> GetAll() =>
             _context.Orders.AsNoTracking().ToList();
+
+        public IEnumerable<Order> GetPaged(int page, int pageSize) =>
+            _context.Orders.AsNoTracking()
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
         public Order? GetById(int id) =>
             _context.Orders.Find(id);
@@ -35,6 +41,13 @@ namespace DataAccess.Repositories.Implements
             _context.Orders
                 .AsNoTracking()
                 .Where(o => o.MemberId == memberId)
+                .ToList();
+
+        public IEnumerable<Order> GetByMemberIdPaged(int memberId, int page, int pageSize) =>
+            _context.Orders.AsNoTracking()
+                .Where(o => o.MemberId == memberId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
         public IEnumerable<BusinessObject.DTOs.SalesReportDto> GetSalesReport(DateTime startDate, DateTime endDate) =>

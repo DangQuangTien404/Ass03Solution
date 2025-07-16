@@ -1,5 +1,5 @@
-using BusinessObject;
 using BusinessObject.DTOs;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using DataAccess.Services.Interface;
 
@@ -8,13 +8,15 @@ namespace DataAccess.Services.Implements
     public class OrderDetailService : IOrderDetailService
     {
         private readonly IOrderDetailRepository _repository;
+        private const int PageSize = 5;
+
         public OrderDetailService(IOrderDetailRepository repository)
         {
             _repository = repository;
         }
 
-        public IEnumerable<OrderDetailDto> GetDetails(int orderId) =>
-            _repository.GetByOrder(orderId).Select(ToDto);
+        public IEnumerable<OrderDetailDto> GetDetails(int orderId, int page) =>
+            _repository.GetByOrderPaged(orderId, page, PageSize).Select(ToDto);
 
         public bool CreateDetail(OrderDetailDto dto)
         {

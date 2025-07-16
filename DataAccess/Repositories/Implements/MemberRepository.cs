@@ -1,4 +1,4 @@
-using BusinessObject;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +14,12 @@ namespace DataAccess.Repositories.Implements
         }
 
         public IEnumerable<Member> GetAll() => _context.Members.AsNoTracking().ToList();
+
+        public IEnumerable<Member> GetPaged(int page, int pageSize) =>
+            _context.Members.AsNoTracking()
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
         public Member? GetById(int id) => _context.Members.Find(id);
 

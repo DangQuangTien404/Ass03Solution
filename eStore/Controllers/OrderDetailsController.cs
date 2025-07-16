@@ -16,12 +16,14 @@ public class OrderDetailsController : ControllerBase
     }
 
     [HttpGet("{orderId}")]
-    public ActionResult<IEnumerable<OrderDetailDto>> Get(int orderId) => Ok(_service.GetDetails(orderId));
+    public ActionResult<IEnumerable<OrderDetailDto>> Get(int orderId, [FromQuery] int page = 1) =>
+        Ok(_service.GetDetails(orderId, page));
 
     [HttpPost]
     public IActionResult Post(OrderDetailDto dto)
     {
-        return _service.CreateDetail(dto) ? Ok() : BadRequest();
+        if (!_service.CreateDetail(dto)) return BadRequest();
+        return Ok();
     }
 
     [HttpPut]
@@ -33,6 +35,8 @@ public class OrderDetailsController : ControllerBase
     [HttpDelete("{orderId}/{productId}")]
     public IActionResult Delete(int orderId, int productId)
     {
-        return _service.DeleteDetail(orderId, productId) ? Ok() : BadRequest();
+        return _service.DeleteDetail(orderId, productId) ? Ok() : NotFound();
     }
+
 }
+

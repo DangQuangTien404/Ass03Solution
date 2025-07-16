@@ -64,6 +64,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -124,6 +129,10 @@ else
     private bool editing;
     private OrderDto modalModel = new();
 
+    private int currentPage = 1;
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => orders?.Count() == 5;
+
     private IEnumerable<OrderDto> FilteredOrders =>
         isAdmin && !string.IsNullOrWhiteSpace(searchTerm)
             ? orders?.Where(o => o.MemberId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<OrderDto>()
@@ -163,9 +172,23 @@ else
     private async Task LoadData()
     {
         orders = isAdmin
-            ? await Http.GetFromJsonAsync<IEnumerable<OrderDto>>("api/Orders")
-            : await Http.GetFromJsonAsync<IEnumerable<OrderDto>>($"api/Orders/member/{AuthService.MemberId ?? 0}");
+            ? await Http.GetFromJsonAsync<IEnumerable<OrderDto>>($"api/Orders?page={currentPage}")
+            : await Http.GetFromJsonAsync<IEnumerable<OrderDto>>($"api/Orders/member/{AuthService.MemberId ?? 0}?page={currentPage}");
         StateHasChanged();
+    }
+
+    private async Task PrevPage()
+    {
+        if (currentPage <= 1) return;
+        currentPage--;
+        await LoadData();
+    }
+
+    private async Task NextPage()
+    {
+        if (!CanNext) return;
+        currentPage++;
+        await LoadData();
     }
 
     private void ShowCreate()

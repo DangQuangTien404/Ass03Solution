@@ -1,7 +1,5 @@
-using BusinessObject;
 using BusinessObject.DTOs;
-using DataAccess.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using DataAccess.Services.Interface;
 
@@ -10,15 +8,15 @@ namespace DataAccess.Services.Implements
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
-        private readonly IHubContext<ProductHub>? _hub;
-        public ProductService(IProductRepository repository, IHubContext<ProductHub>? hub = null)
+        private const int PageSize = 5;
+
+        public ProductService(IProductRepository repository)
         {
             _repository = repository;
-            _hub = hub;
         }
 
-        public IEnumerable<ProductDto> GetProducts() =>
-            _repository.GetAll().Select(p => ToDto(p));
+        public IEnumerable<ProductDto> GetProducts(int page) =>
+            _repository.GetPaged(page, PageSize).Select(ToDto);
 
         public ProductDto? GetProduct(int id)
         {
@@ -39,7 +37,6 @@ namespace DataAccess.Services.Implements
             _repository.Add(product);
             _repository.SaveChanges();
             dto.ProductId = product.ProductId;
-            _hub?.Clients.All.SendAsync("ProductCreated", ToDto(product));
         }
 
         public void UpdateProduct(ProductDto dto)
@@ -53,7 +50,6 @@ namespace DataAccess.Services.Implements
             product.UnitsInStock = dto.UnitsInStock;
             _repository.Update(product);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("ProductUpdated", ToDto(product));
         }
 
         public void DeleteProduct(int id)
@@ -62,7 +58,6 @@ namespace DataAccess.Services.Implements
             if (product == null) return;
             _repository.Delete(product);
             _repository.SaveChanges();
-            _hub?.Clients.All.SendAsync("ProductDeleted", id);
         }
 
         private static ProductDto ToDto(Product product) => new()
@@ -72,7 +67,7 @@ namespace DataAccess.Services.Implements
             ProductName = product.ProductName,
             Weight = product.Weight,
             UnitPrice = product.UnitPrice,
-            UnitsInStock = product.UnitsInStock
+            UnitsInStock = product.UnitsInStock ?? 0
         };
     }
 }

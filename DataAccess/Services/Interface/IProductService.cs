@@ -4,7 +4,7 @@ namespace DataAccess.Services.Interface
 {
     public interface IProductService
     {
-        IEnumerable<ProductDto> GetProducts();
+        IEnumerable<ProductDto> GetProducts(int page);
         ProductDto? GetProduct(int id);
         void CreateProduct(ProductDto dto);
         void UpdateProduct(ProductDto dto);

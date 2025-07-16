@@ -53,6 +53,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -112,6 +117,10 @@ else
     private bool editing;
     private MemberDto modalModel = new();
 
+    private int currentPage = 1;
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => members?.Count() == 5;
+
     private IEnumerable<MemberDto> FilteredMembers => string.IsNullOrWhiteSpace(searchTerm)
         ? members ?? Enumerable.Empty<MemberDto>()
         : members?.Where(m => m.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<MemberDto>();
@@ -149,8 +158,22 @@ else
 
     private async Task LoadData()
     {
-        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>("api/Members");
+        members = await Http.GetFromJsonAsync<IEnumerable<MemberDto>>($"api/Members?page={currentPage}");
         StateHasChanged();
+    }
+
+    private async Task PrevPage()
+    {
+        if (currentPage <= 1) return;
+        currentPage--;
+        await LoadData();
+    }
+
+    private async Task NextPage()
+    {
+        if (!CanNext) return;
+        currentPage++;
+        await LoadData();
     }
 
     private void ShowCreate()
