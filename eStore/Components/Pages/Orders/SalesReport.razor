@@ -14,6 +14,7 @@
 else
 {
     <EditForm Model="this" OnValidSubmit="GenerateReport">
+        <DataAnnotationsValidator />
         <div class="row g-3 mb-3">
             <div class="col-auto">
                 <label class="form-label">Start Date</label>
@@ -59,7 +60,10 @@ else
 
 @code {
     private bool redirectToLogin;
+    [System.ComponentModel.DataAnnotations.Required]
     public DateTime StartDate { get; set; } = DateTime.Today.AddMonths(-1);
+
+    [System.ComponentModel.DataAnnotations.Required]
     public DateTime EndDate { get; set; } = DateTime.Today;
     private IEnumerable<BusinessObject.DTOs.SalesReportDto>? report;
 
