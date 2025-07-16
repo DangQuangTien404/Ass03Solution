@@ -6,7 +6,6 @@ namespace BusinessObject.Models
     [Table("OrderDetail")]
     public class OrderDetail
     {
-        // Composite PK must be configured in your DbContext Fluent API
         public int OrderId   { get; set; }
         public int ProductId { get; set; }
 
