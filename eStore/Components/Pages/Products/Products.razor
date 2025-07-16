@@ -54,6 +54,11 @@ else
         }
         </tbody>
     </table>
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="PrevPage" disabled="@(!CanPrev)">Previous</button>
+        <span>Page @currentPage</span>
+        <button class="btn btn-secondary" @onclick="NextPage" disabled="@(!CanNext)">Next</button>
+    </div>
 }
 
 @if (showModal)
@@ -124,6 +129,10 @@ else
     private bool editing;
     private ProductDto modalModel = new();
 
+    private int currentPage = 1;
+    private bool CanPrev => currentPage > 1;
+    private bool CanNext => products?.Count() == 5;
+
     private IEnumerable<ProductDto> FilteredProducts => products?
         .Where(p => (string.IsNullOrWhiteSpace(searchName) || p.ProductName.Contains(searchName, StringComparison.OrdinalIgnoreCase))
                  && (!searchPrice.HasValue || p.UnitPrice == searchPrice))
@@ -162,8 +171,8 @@ else
 
     private async Task LoadData()
     {
-        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>("api/Products");
-        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories");
+        products = await Http.GetFromJsonAsync<IEnumerable<ProductDto>>($"api/Products?page={currentPage}");
+        categories = await Http.GetFromJsonAsync<IEnumerable<CategoryDto>>("api/Categories?page=1");
         StateHasChanged();
     }
 
@@ -215,6 +224,20 @@ else
             return;
         }
         await Http.DeleteAsync($"api/Products/{id}");
+        await LoadData();
+    }
+
+    private async Task PrevPage()
+    {
+        if (currentPage <= 1) return;
+        currentPage--;
+        await LoadData();
+    }
+
+    private async Task NextPage()
+    {
+        if (!CanNext) return;
+        currentPage++;
         await LoadData();
     }
 

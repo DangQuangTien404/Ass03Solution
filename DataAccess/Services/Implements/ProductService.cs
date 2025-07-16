@@ -1,4 +1,4 @@
-using BusinessObject.Entities;
+using BusinessObject.Models;
 using BusinessObject.DTOs;
 using DataAccess.Hubs;
 using Microsoft.AspNetCore.SignalR;
@@ -17,8 +17,10 @@ namespace DataAccess.Services.Implements
             _hub = hub;
         }
 
-        public IEnumerable<ProductDto> GetProducts() =>
-            _repository.GetAll().Select(p => ToDto(p));
+        private const int PageSize = 5;
+
+        public IEnumerable<ProductDto> GetProducts(int page) =>
+            _repository.GetPaged(page, PageSize).Select(ToDto);
 
         public ProductDto? GetProduct(int id)
         {

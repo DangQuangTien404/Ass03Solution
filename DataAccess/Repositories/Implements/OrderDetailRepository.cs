@@ -1,4 +1,4 @@
-using BusinessObject.Entities;
+using BusinessObject.Models;
 using DataAccess.Repositories.Interface;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +16,14 @@ namespace DataAccess.Repositories.Implements
             _context.OrderDetails.Include(od => od.Product)
                 .AsNoTracking()
                 .Where(od => od.OrderId == orderId)
+                .ToList();
+
+        public IEnumerable<OrderDetail> GetByOrderPaged(int orderId, int page, int pageSize) =>
+            _context.OrderDetails.Include(od => od.Product)
+                .AsNoTracking()
+                .Where(od => od.OrderId == orderId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
         public OrderDetail? Get(int orderId, int productId) =>

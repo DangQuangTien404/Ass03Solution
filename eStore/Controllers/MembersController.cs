@@ -16,7 +16,8 @@ public class MembersController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<MemberDto>> Get() => Ok(_service.GetMembers());
+    public ActionResult<IEnumerable<MemberDto>> GetPaged([FromQuery] int page = 1) =>
+        Ok(_service.GetMembers(page));
 
     [HttpGet("{id}")]
     public ActionResult<MemberDto> Get(int id)

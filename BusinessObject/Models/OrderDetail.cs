@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BusinessObject.Entities
+namespace BusinessObject.Models
 {
     [Table("OrderDetail")]
     public class OrderDetail

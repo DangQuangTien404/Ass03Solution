@@ -1,4 +1,4 @@
-using BusinessObject.Entities;
+using BusinessObject.Models;
 using BusinessObject.DTOs;
 using DataAccess.Repositories.Interface;
 using DataAccess.Services.Interface;
@@ -13,8 +13,10 @@ namespace DataAccess.Services.Implements
             _repository = repository;
         }
 
-        public IEnumerable<OrderDetailDto> GetDetails(int orderId) =>
-            _repository.GetByOrder(orderId).Select(ToDto);
+        private const int PageSize = 5;
+
+        public IEnumerable<OrderDetailDto> GetDetails(int orderId, int page) =>
+            _repository.GetByOrderPaged(orderId, page, PageSize).Select(ToDto);
 
         public bool CreateDetail(OrderDetailDto dto)
         {

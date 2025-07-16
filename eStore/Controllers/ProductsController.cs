@@ -16,7 +16,8 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<ProductDto>> Get() => Ok(_service.GetProducts());
+    public ActionResult<IEnumerable<ProductDto>> GetPaged([FromQuery] int page = 1) =>
+        Ok(_service.GetProducts(page));
 
     [HttpGet("{id}")]
     public ActionResult<ProductDto> Get(int id)

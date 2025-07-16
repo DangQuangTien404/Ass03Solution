@@ -17,8 +17,10 @@ namespace DataAccess.Services.Implements
             _hub = hub;
         }
 
-        public IEnumerable<CategoryDto> GetCategories() =>
-            _repository.GetAll().Select(ToDto);
+        private const int PageSize = 5;
+
+        public IEnumerable<CategoryDto> GetCategories(int page) =>
+            _repository.GetPaged(page, PageSize).Select(ToDto);
 
         public CategoryDto? GetCategory(int id)
         {
@@ -28,7 +30,7 @@ namespace DataAccess.Services.Implements
 
         public void CreateCategory(CategoryDto dto)
         {
-            var category = new BusinessObject.Entities.Category
+            var category = new BusinessObject.Models.Category
             {
                 CategoryName = dto.CategoryName,
                 Description = dto.Description
@@ -61,7 +63,7 @@ namespace DataAccess.Services.Implements
             return true;
         }
 
-        private static CategoryDto ToDto(BusinessObject.Entities.Category c) => new()
+        private static CategoryDto ToDto(BusinessObject.Models.Category c) => new()
         {
             CategoryId = c.CategoryId,
             CategoryName = c.CategoryName,

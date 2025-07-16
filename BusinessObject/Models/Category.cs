@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BusinessObject.Entities
+namespace BusinessObject.Models
 {
     [Table("Categories")]
     public class Category
