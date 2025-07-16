@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BusinessObject.Validators;
 
 namespace BusinessObject.DTOs
 {
@@ -11,10 +12,13 @@ namespace BusinessObject.DTOs
         public int MemberId { get; set; }
 
         [Required]
+        [NotPastDate]
         public DateTime OrderDate { get; set; } = DateTime.Now;
 
+        [NotPastDate]
         public DateTime? RequiredDate { get; set; }
 
+        [NotPastDate]
         public DateTime? ShippedDate { get; set; }
 
         public decimal? Freight { get; set; }

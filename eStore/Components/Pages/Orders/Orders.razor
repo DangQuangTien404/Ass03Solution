@@ -98,15 +98,15 @@ else
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Order Date</label>
-                            <InputDate class="form-control" @bind-Value="modalModel.OrderDate" />
+                            <InputDate class="form-control" @bind-Value="modalModel.OrderDate" min="@TodayString" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Required Date</label>
-                            <InputDate class="form-control" @bind-Value="modalModel.RequiredDate" />
+                            <InputDate class="form-control" @bind-Value="modalModel.RequiredDate" min="@TodayString" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Shipped Date</label>
-                            <InputDate class="form-control" @bind-Value="modalModel.ShippedDate" />
+                            <InputDate class="form-control" @bind-Value="modalModel.ShippedDate" min="@TodayString" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Freight</label>
@@ -139,6 +139,7 @@ else
     private bool showModal;
     private bool editing;
     private OrderDto modalModel = new();
+    private string TodayString => DateTime.Today.ToString("yyyy-MM-dd");
 
 
     private int currentPage = 1;
